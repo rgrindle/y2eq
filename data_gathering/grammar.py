@@ -5,7 +5,7 @@ import numpy as np
 
 class Grammar:
 
-    def __init__(self, V: Set[str], T: Set[str],
+    def __init__(self, V: Set[str],
                  S: str, P: Dict[str, str],
                  rng=np.random.RandomState(0)):
         """
@@ -13,15 +13,12 @@ class Grammar:
         ----------
         V : set of str
             symbols with rules
-        T : set of str
-            terminal symbols
         S : str
             start string
         P : dict from V to element(s) of union(V,U)
             rules (productions)
         """
         self.V = V
-        self.T = T
         self.S = S
         self.P = P
         self.rng = rng
@@ -46,7 +43,7 @@ class Grammar:
 
 
 if __name__ == '__main__':
-    G = Grammar(V={'S'}, T={'x', '*'},
+    G = Grammar(V={'S'},
                 S='S', P={'S': ['x', '(S*S)', '(S+S)',
                                 '(S-S)',
                                 'sin(S)']},
