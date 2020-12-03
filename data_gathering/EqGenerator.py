@@ -6,12 +6,13 @@ PURPOSE: Generate dataset for meta symbolic regression
 
 NOTES:
 
-TODO: Make consistent format and remove duplicates
-      Add constants
+TODO: Add constants
       Calculate semantics
       Form the dataset (maybe a different class that uses this one?)
       Make rule generator more consistent S -> Mult(S,S) instead of
         S -> S*S even though for one arg it does S -> sin(S) for example.
+      Spot and avoid obvious places that will result in duplicate equations
+       (before removing duplicate function). Example: commutativity
 """
 import sympy
 import numpy as np
@@ -104,10 +105,21 @@ class EqGenerator:
         return sympy.sympify(expr_str).expand()
 
     def remove_duplicates(self, eq_list: List[str]):
-        sympy_eq_list = [self.format_expr_str(eq) for eq in eq_list]
-        _, indices = np.unique([str(eq) for eq in sympy_eq_list],
-                               return_index=True)
-        return [sympy_eq_list[i] for i in indices]
+        eq_list = [self.format_expr_str(eq) for eq in eq_list]
+        eq_list_no_coeff = [self.remove_coeff(eq) for eq in eq_list]
+        _, indices = np.unique(eq_list_no_coeff, return_index=True)
+        return [eq_list_no_coeff[i] for i in indices]
+
+    def remove_coeff_term(self, term: str) -> str:
+        if term[0].isdigit():
+            return term[2:]
+        else:
+            return term
+
+    def remove_coeff(self, expr):
+        term_list = str(expr).split('+')
+        no_coeff_terms = [self.remove_coeff_term(t.strip()) for t in term_list]
+        return '+'.join(no_coeff_terms)
 
 
 if __name__ == '__main__':

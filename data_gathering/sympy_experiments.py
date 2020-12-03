@@ -20,11 +20,33 @@ def get_func_form(expr):
     return '+'.join(['c{}*{}'.format(i, a) for i, a in enumerate(expr.args)])
 
 
+def remove_coeff_term(term):
+    term_str = str(term)
+
+    if term_str[0].isdigit():
+        return term_str[2:]
+    else:
+        return term_str
+
+
+def remove_coeff(expr):
+    no_coeff_terms = [remove_coeff_term(t) for t in str(expr).split('+')]
+    return sympy.sympify('+'.join(no_coeff_terms))
+
+
 if __name__ == '__main__':
     x = sympy.symbols('x')
-    expr = x*sympy.exp(x)+x**2+x+x**2+x**3 + sympy.sin(x*x)
-    print(expr)
-    print(expr.args)
-    func_form = get_func_form(expr)
+
+    expr = x+x + 2*x**2
+    # expr = 2*x
+    print('expr', expr)
+
+    no_coeff_expr = remove_coeff(expr)
+    print('no_coeff_expr', no_coeff_expr)
+
+    # expr = x*sympy.exp(x)+x**2+x+x**2+x**3 + sympy.sin(x*x)
+    # print(expr)
+    # print(expr.args)
+    # func_form = get_func_form(expr)
     # print(sympy.srepr(expr))
-    print(func_form)
+    # print(func_form)
