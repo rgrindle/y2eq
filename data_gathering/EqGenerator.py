@@ -14,7 +14,7 @@ TODO: Make consistent format and remove duplicates
         S -> S*S even though for one arg it does S -> sin(S) for example.
 """
 
-from typing import Set, List, Tuple, Dict
+from typing import List, Tuple, Dict
 
 
 def insert_str(string, to_insert, index):
@@ -27,32 +27,27 @@ class EqGenerator:
     unusual way to create all possible equations)."""
 
     def __init__(self,
-                 primitive_set: Set[str],
                  num_args: Dict[str, int],
                  max_depth: int) -> None:
         """
         PARAMETERS
         ----------
-        primitive_set : set
-            primitive set to use in generation
-            of equations.
         num_args : dict
-            How many arguments are expected for each
-            element of the primitive set? (e.g. num_args['sin'] = 1)
+            The keys of this dictionary are the primitive
+            set and the values are the number of arguments
+            needed. (e.g. num_args['sin'] = 1)
         max_depth : int
             Max depth of tree associated with equation.
         """
-        assert primitive_set == num_args.keys()
-        assert all([1 <= n <= 2 for n in num_args.values()])
-        self.primitive_set = primitive_set
-        self.num_args = num_args
+        assert all([1 <= n <= 2 for n in num_args.values()]), (
+               'EqGenerator only supports primitive with one or two inputs.')
         self.max_depth = max_depth
 
         # Construct the rules from primitive set and num_args
         # All rules convert S to something (e.g. S -> (S+S))
         # so I use shorthand by not specifying the LHS.
         self.rules = ['x']
-        for p in self.primitive_set:
+        for p in num_args:
             if num_args[p] == 1:
                 self.rules.append('{}(S)'.format(p))
             else:
@@ -101,8 +96,7 @@ class EqGenerator:
 
 
 if __name__ == '__main__':
-    G = EqGenerator(primitive_set={'*', '+'},
-                    num_args={'*': 2, '+': 2},
+    G = EqGenerator(num_args={'*': 2, '+': 2},
                     max_depth=2)
     eq_list = G.gen_all_eqs()
     print('eq_list', eq_list)
