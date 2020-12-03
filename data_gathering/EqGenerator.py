@@ -13,6 +13,8 @@ TODO: Make consistent format and remove duplicates
       Make rule generator more consistent S -> Mult(S,S) instead of
         S -> S*S even though for one arg it does S -> sin(S) for example.
 """
+import sympy
+import numpy as np
 
 from typing import List, Tuple, Dict
 
@@ -94,9 +96,26 @@ class EqGenerator:
                                                       S_locs[:-1]))
             return next_level
 
+# def get_func_form(self, expr):
+#     assert len(expr.args) <= 10
+#     return '+'.join(['c{}*{}'.format(i, a) for i, a in enumerate(expr.args)])
+
+    def format_expr_str(self, expr_str: str):
+        return sympy.sympify(expr_str).expand()
+
+    def remove_duplicates(self, eq_list: List[str]):
+        sympy_eq_list = [self.format_expr_str(eq) for eq in eq_list]
+        _, indices = np.unique([str(eq) for eq in sympy_eq_list],
+                               return_index=True)
+        return [sympy_eq_list[i] for i in indices]
+
 
 if __name__ == '__main__':
     G = EqGenerator(num_args={'*': 2, '+': 2},
                     max_depth=2)
     eq_list = G.gen_all_eqs()
     print('eq_list', eq_list)
+    print(len(eq_list))
+    eq_list = G.remove_duplicates(eq_list)
+    print('eq_list', eq_list)
+    print(len(eq_list))
