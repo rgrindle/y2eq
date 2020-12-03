@@ -26,7 +26,7 @@ class Grammar:
         self.P = P
         self.rng = rng
 
-    def gen_rand_str(self, string=None):
+    def gen_rand_str(self, string=None, depth=0, max_depth=7):
         string = self.S if string is None else string
         if not any([v in string for v in self.V]):
             return string
@@ -34,8 +34,11 @@ class Grammar:
             new_string_list = []
             for s in string:
                 if s in self.V:
-                    sub_s = self.rng.choice(self.P[s])
-                    new_s = self.gen_rand_str(sub_s)
+                    if depth < max_depth-1:
+                        sub_s = self.rng.choice(self.P[s])
+                    else:
+                        sub_s = 'x'
+                    new_s = self.gen_rand_str(sub_s, depth=depth+1)
                 else:
                     new_s = s
                 new_string_list.append(new_s)
@@ -44,7 +47,13 @@ class Grammar:
 
 if __name__ == '__main__':
     G = Grammar(V={'S'}, T={'x', '*'},
-                S='S', P={'S': ['x', '(S*S)', '(S+S)']},
-                rng=np.random.RandomState(3))
+                S='S', P={'S': ['x', '(S*S)', '(S+S)',
+                                '(S-S)',
+                                'sin(S)']},
+                rng=np.random.RandomState(4))
     string = G.gen_rand_str()
     print(string)
+    import sympy
+    x = sympy.symbols('x')
+    expr = sympy.sympify(string)
+    print(expr)
