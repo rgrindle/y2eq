@@ -34,7 +34,8 @@ class DatasetGenerator:
     def __init__(self,
                  num_args: Dict[str, int],
                  max_depth: int,
-                 X: np.ndarray) -> None:
+                 X: np.ndarray,
+                 rng) -> None:
         """
         PARAMETERS
         ----------
@@ -53,6 +54,7 @@ class DatasetGenerator:
                'EqGenerator only supports primitive with one or two inputs.')
         self.max_depth = max_depth
         self.X = X
+        self.rng = rng
 
         self.tokens = list(num_args.keys())
         self.tokens += ['x', '(', ')', '^']
@@ -133,8 +135,8 @@ class DatasetGenerator:
             eq.eq_seq.extend(['STOP']*(max_len_output-len(eq.eq_seq)))
 
     def get_Y(self, eq) -> np.ndarray:
-        f = eq.get_f()
-        return f(self.X).tolist()
+        eq.coeffs = self.rng.uniform(-10, 10, eq.num_coeffs)
+        return eq.eval(self.X)
 
     def get_eq_seq(self, eq):
         i = 0
@@ -170,7 +172,8 @@ class DatasetGenerator:
 if __name__ == '__main__':
     DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
                           max_depth=2,
-                          X=np.linspace(0.1, 3.1, 30))
+                          X=np.linspace(0.1, 3.1, 30),
+                          rng=np.random.RandomState(0))
     print('eq_list')
     for eq in DG.all_eqs:
         print(eq)
