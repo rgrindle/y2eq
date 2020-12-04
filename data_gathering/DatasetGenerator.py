@@ -12,7 +12,8 @@ TODO: Add constants
       Spot and avoid obvious places that will result in duplicate equations
        (before removing duplicate function). Example: commutativity
 """
-import sympy  # type: ignore
+from Equation import Equation
+
 import numpy as np  # type: ignore
 from sklearn.preprocessing import OneHotEncoder  # type: ignore
 
@@ -69,8 +70,15 @@ class DatasetGenerator:
             else:
                 self.rules.append('(S{}S)'.format(p))
 
-    def gen_all_eqs(self, str_list: List[str] = ['S'],
-                    depth: int = 0) -> List[str]:
+        self.gen_all_eqs()
+        self.all_eqs = np.unique(self.all_eqs)
+
+    def gen_all_eqs(self):
+        self.all_eqs = [Equation(eq) for eq in self.__gen_all_eqs()]
+        return self.all_eqs
+
+    def __gen_all_eqs(self, str_list: List[str] = ['S'],
+                      depth: int = 0) -> List[str]:
         new_str_list = []
         all_eqs = []
         for s in str_list:
@@ -79,7 +87,7 @@ class DatasetGenerator:
             new_str_list.extend(incomplete_eq)
             all_eqs.extend(complete_eq)
         if depth < self.max_depth:
-            all_eqs.extend(self.gen_all_eqs(new_str_list, depth+1))
+            all_eqs.extend(self.__gen_all_eqs(new_str_list, depth+1))
         return all_eqs
 
     def get_complete(self, str_list: List[str]) -> Tuple[List[str], List[str]]:
@@ -110,76 +118,39 @@ class DatasetGenerator:
                                                       S_locs[:-1]))
             return next_level
 
-    def format_expr_str(self, expr_str: str):
-        return sympy.sympify(expr_str).expand()
-
-    def remove_duplicates(self, eq_list: List[str]):
-        eq_list = [self.format_expr_str(eq) for eq in eq_list]
-        eq_list_no_coeff = [self.remove_coeff(eq) for eq in eq_list]
-        _, indices = np.unique(eq_list_no_coeff, return_index=True)
-        return [eq_list_no_coeff[i] for i in indices]
-
-    def remove_const_mult_at(self, term: str, index: int) -> str:
-        end_index = index
-        while term[end_index].isdigit():
-            end_index += 1
-        if end_index == index:
-            return term
-        else:
-            return term[:index] + term[end_index+1:]
-
-    def remove_coeff_term(self, term: str) -> str:
-        term = self.remove_const_mult_at(term, 0)
-        paren_indices = [i+1 for i, t in enumerate(term) if t == '(']
-        for i in paren_indices:
-            term = self.remove_const_mult_at(term, i)
-        return term
-
-    def remove_coeff(self, expr) -> str:
-        term_list = str(expr).split('+')
-        no_coeff_terms = [self.remove_coeff_term(t.strip()) for t in term_list]
-        return '+'.join(no_coeff_terms)
-
-# def get_func_form(self, expr):
-#     assert len(expr.args) <= 10
-#     return '+'.join(['c{}*{}'.format(i, a) for i, a in enumerate(expr.args)])
-
-    def get_dataset(self, eq_list) -> Tuple[np.ndarray]:
+    def get_dataset(self) -> Tuple[np.ndarray]:
         self.dataset_input = []
+        for eq in self.all_eqs:
+            self.dataset_input.append(self.get_Y(eq))
+            self.get_eq_seq(eq)
         self.dataset_output = []
-        for eq in eq_list:
-            self.dataset_input.append(self.get_dataset_input(eq))
-            self.dataset_output.append(self.get_dataset_output(eq))
-        self.pad_output()
-        self.dataset_output = [self.get_onehot(e) for e in self.dataset_output]
+        self.pad_eq_seqs()
+        self.dataset_output = [self.get_onehot(e) for e in self.all_eqs]
 
-    def get_dataset_input(self, eq) -> np.ndarray:
-        f = self.get_f(eq)
+    def pad_eq_seqs(self):
+        max_len_output = max([len(eq.eq_seq) for eq in self.all_eqs])
+        for eq in self.all_eqs:
+            eq.eq_seq.extend(['STOP']*(max_len_output-len(eq.eq_seq)))
+
+    def get_Y(self, eq) -> np.ndarray:
+        f = eq.get_f()
         return f(self.X).tolist()
 
-    def get_f(self, expr):
-        return np.vectorize(sympy.utilities.lambdify(sympy.Symbol('x'), expr))
-
-    def get_dataset_output(self, eq):
-        eq_str = str(eq).replace('**', '^')
+    def get_eq_seq(self, eq):
         i = 0
-        eq_seq = []
-        while i < len(eq_str):
+        eq.eq_seq = []
+        while i < len(eq.eq_str):
             for a in self.tokens:
-                if eq_str[i:i+len(a)] == a:
-                    eq_seq.append(eq_str[i:i+len(a)])
+                if eq.eq_str[i:i+len(a)] == a:
+                    eq.eq_seq.append(eq.eq_str[i:i+len(a)])
                     break
             i += len(a)
-        return eq_seq
+        return eq.eq_seq
 
-    def pad_output(self):
-        max_len_output = max([len(eq_seq) for eq_seq in self.dataset_output])
-        for eq_seq in self.dataset_output:
-            eq_seq.extend(['STOP']*(max_len_output-len(eq_seq)))
-
-    def get_onehot(self, seq):
-        reshaped_seq = [[token] for token in seq]
-        return self.onehot_encoder.transform(reshaped_seq).toarray().tolist()
+    def get_onehot(self, eq):
+        __seq = [[token] for token in eq.eq_seq]
+        eq.onehot = self.onehot_encoder.transform(__seq).toarray().tolist()
+        return eq.onehot
 
     def save_dataset(self, save_name: str,
                      save_loc: str = os.path.join('..', 'datasets')) -> None:
@@ -200,11 +171,11 @@ if __name__ == '__main__':
     DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
                           max_depth=2,
                           X=np.linspace(0.1, 3.1, 30))
-    eq_list = DG.gen_all_eqs()
-    eq_list = DG.remove_duplicates(eq_list)
-    print('eq_list', eq_list)
-    print('len(eq_list)', len(eq_list))
-    DG.get_dataset(eq_list)
+    print('eq_list')
+    for eq in DG.all_eqs:
+        print(eq)
+    print('len(DG.all_eqs)', len(DG.all_eqs))
+    DG.get_dataset()
     DG.save_dataset('dataset.json')
 
     dataset_input, dataset_output = DG.load_dataset('dataset.json')
