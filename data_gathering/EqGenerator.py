@@ -14,9 +14,11 @@ TODO: Add constants
       Spot and avoid obvious places that will result in duplicate equations
        (before removing duplicate function). Example: commutativity
 """
-import sympy
-import numpy as np
+import sympy  # type: ignore
+import numpy as np  # type: ignore
 
+import os
+import json
 from typing import List, Tuple, Dict
 
 
@@ -31,7 +33,8 @@ class EqGenerator:
 
     def __init__(self,
                  num_args: Dict[str, int],
-                 max_depth: int) -> None:
+                 max_depth: int,
+                 X: np.ndarray) -> None:
         """
         PARAMETERS
         ----------
@@ -41,10 +44,19 @@ class EqGenerator:
             needed. (e.g. num_args['sin'] = 1)
         max_depth : int
             Max depth of tree associated with equation.
+        alphabet : List[str]
+            A list of all the possible tokens.
+        X : np.ndarray
+            The x-values to use to compute the y-values.
         """
         assert all([1 <= n <= 2 for n in num_args.values()]), (
                'EqGenerator only supports primitive with one or two inputs.')
         self.max_depth = max_depth
+        self.X = X
+
+        self.alphabet = list(num_args.keys())
+        self.alphabet += ['x', '(', ')', '^']
+        self.alphabet += [str(d) for d in range(10)]
 
         # Construct the rules from primitive set and num_args
         # All rules convert S to something (e.g. S -> (S+S))
@@ -122,7 +134,7 @@ class EqGenerator:
             term = self.remove_const_mult_at(term, i)
         return term
 
-    def remove_coeff(self, expr):
+    def remove_coeff(self, expr) -> str:
         term_list = str(expr).split('+')
         no_coeff_terms = [self.remove_coeff_term(t.strip()) for t in term_list]
         return '+'.join(no_coeff_terms)
@@ -131,13 +143,57 @@ class EqGenerator:
 #     assert len(expr.args) <= 10
 #     return '+'.join(['c{}*{}'.format(i, a) for i, a in enumerate(expr.args)])
 
+    def get_dataset(self, eq_list) -> Tuple[np.ndarray]:
+        self.dataset_input = []
+        self.dataset_output = []
+        for eq in eq_list:
+            self.dataset_input.append(self.get_dataset_input(eq))
+            self.dataset_output.append(self.get_dataset_output(eq))
+        return self.dataset_input, self.dataset_output
+
+    def get_dataset_input(self, eq) -> np.ndarray:
+        print('hello', eq)
+        f = self.get_f(eq)
+        print('got f')
+        return f(self.X)
+
+    def get_f(self, expr):
+        print('get_f')
+        return np.vectorize(sympy.utilities.lambdify(sympy.Symbol('x'), expr))
+
+    def get_dataset_output(self, eq):
+        eq_str = str(eq).replace('**', '^')
+        i = 0
+        eq_seq = []
+        while i < len(eq_str):
+            for a in self.alphabet:
+                if eq_str[i:i+len(a)] == a:
+                    eq_seq.append(eq_str[i:i+len(a)])
+                    break
+            i += len(a)
+        return eq_seq
+
+    def save_dataset(self, save_name: str,
+                     save_loc: str = os.path.join('..', 'datasets')) -> None:
+        json.dump(self.dataset_output,
+                  open(os.path.join(save_loc, save_name), 'w'),
+                  separators=(',', ':'),
+                  sort_keys=False,
+                  indent=4)
+
 
 if __name__ == '__main__':
     G = EqGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
-                    max_depth=2)
+                    max_depth=2,
+                    X=np.linspace(0.1, 3.1, 30))
     eq_list = G.gen_all_eqs()
     print('eq_list', eq_list)
     print(len(eq_list))
     eq_list = G.remove_duplicates(eq_list)
     print('eq_list', eq_list)
     print(len(eq_list))
+    dataset_input, dataset_output = G.get_dataset(eq_list)
+    print(dataset_input)
+    for i in range(len(dataset_output)):
+        print(eq_list[i], dataset_output[i])
+    G.save_dataset('dataset.json')
