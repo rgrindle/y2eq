@@ -57,6 +57,7 @@ class EqGenerator:
         self.alphabet = list(num_args.keys())
         self.alphabet += ['x', '(', ')', '^']
         self.alphabet += [str(d) for d in range(10)]
+        self.alphabet += ['START', 'STOP']
 
         # Construct the rules from primitive set and num_args
         # All rules convert S to something (e.g. S -> (S+S))
@@ -149,6 +150,7 @@ class EqGenerator:
         for eq in eq_list:
             self.dataset_input.append(self.get_dataset_input(eq))
             self.dataset_output.append(self.get_dataset_output(eq))
+        self.pad_output()
         return self.dataset_input, self.dataset_output
 
     def get_dataset_input(self, eq) -> np.ndarray:
@@ -173,6 +175,11 @@ class EqGenerator:
             i += len(a)
         return eq_seq
 
+    def pad_output(self):
+        max_len_output = max([len(eq_seq) for eq_seq in self.dataset_output])
+        for eq_seq in self.dataset_output:
+            eq_seq.extend(['STOP']*(max_len_output-len(eq_seq)))
+
     def save_dataset(self, save_name: str,
                      save_loc: str = os.path.join('..', 'datasets')) -> None:
         json.dump(self.dataset_output,
@@ -195,5 +202,5 @@ if __name__ == '__main__':
     dataset_input, dataset_output = G.get_dataset(eq_list)
     print(dataset_input)
     for i in range(len(dataset_output)):
-        print(eq_list[i], dataset_output[i])
+        print(len(dataset_output[i]), eq_list[i], dataset_output[i])
     G.save_dataset('dataset.json')
