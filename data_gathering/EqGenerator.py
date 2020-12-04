@@ -7,8 +7,6 @@ PURPOSE: Generate dataset for meta symbolic regression
 NOTES:
 
 TODO: Add constants
-      Calculate semantics
-      Form the dataset (maybe a different class that uses this one?)
       Make rule generator more consistent S -> Mult(S,S) instead of
         S -> S*S even though for one arg it does S -> sin(S) for example.
       Spot and avoid obvious places that will result in duplicate equations
@@ -16,6 +14,7 @@ TODO: Add constants
 """
 import sympy  # type: ignore
 import numpy as np  # type: ignore
+from sklearn.preprocessing import OneHotEncoder  # type: ignore
 
 import os
 import json
@@ -26,7 +25,7 @@ def insert_str(string, to_insert, index):
     return string[:index] + to_insert + string[index+1:]
 
 
-class EqGenerator:
+class DatasetGenerator:
     """This class generates equations in infix notation
     using a grammar (although it is evaluated in an
     unusual way to create all possible equations)."""
@@ -44,7 +43,7 @@ class EqGenerator:
             needed. (e.g. num_args['sin'] = 1)
         max_depth : int
             Max depth of tree associated with equation.
-        alphabet : List[str]
+        tokens : List[str]
             A list of all the possible tokens.
         X : np.ndarray
             The x-values to use to compute the y-values.
@@ -54,10 +53,11 @@ class EqGenerator:
         self.max_depth = max_depth
         self.X = X
 
-        self.alphabet = list(num_args.keys())
-        self.alphabet += ['x', '(', ')', '^']
-        self.alphabet += [str(d) for d in range(10)]
-        self.alphabet += ['START', 'STOP']
+        self.tokens = list(num_args.keys())
+        self.tokens += ['x', '(', ')', '^']
+        self.tokens += [str(d) for d in range(10)]
+        self.tokens += ['START', 'STOP']
+        self.onehot_encoder = OneHotEncoder().fit([[t] for t in self.tokens])
 
         # Construct the rules from primitive set and num_args
         # All rules convert S to something (e.g. S -> (S+S))
@@ -151,16 +151,13 @@ class EqGenerator:
             self.dataset_input.append(self.get_dataset_input(eq))
             self.dataset_output.append(self.get_dataset_output(eq))
         self.pad_output()
-        return self.dataset_input, self.dataset_output
+        self.dataset_output = [self.get_onehot(e) for e in self.dataset_output]
 
     def get_dataset_input(self, eq) -> np.ndarray:
-        print('hello', eq)
         f = self.get_f(eq)
-        print('got f')
-        return f(self.X)
+        return f(self.X).tolist()
 
     def get_f(self, expr):
-        print('get_f')
         return np.vectorize(sympy.utilities.lambdify(sympy.Symbol('x'), expr))
 
     def get_dataset_output(self, eq):
@@ -168,7 +165,7 @@ class EqGenerator:
         i = 0
         eq_seq = []
         while i < len(eq_str):
-            for a in self.alphabet:
+            for a in self.tokens:
                 if eq_str[i:i+len(a)] == a:
                     eq_seq.append(eq_str[i:i+len(a)])
                     break
@@ -180,27 +177,37 @@ class EqGenerator:
         for eq_seq in self.dataset_output:
             eq_seq.extend(['STOP']*(max_len_output-len(eq_seq)))
 
+    def get_onehot(self, seq):
+        reshaped_seq = [[token] for token in seq]
+        return self.onehot_encoder.transform(reshaped_seq).toarray().tolist()
+
     def save_dataset(self, save_name: str,
                      save_loc: str = os.path.join('..', 'datasets')) -> None:
-        json.dump(self.dataset_output,
+        json.dump((self.dataset_input, self.dataset_output),
                   open(os.path.join(save_loc, save_name), 'w'),
                   separators=(',', ':'),
                   sort_keys=False,
                   indent=4)
 
+    def load_dataset(self, save_name: str,
+                     save_loc: str = os.path.join('..', 'datasets')):
+        dataset_file = open(os.path.join(save_loc, save_name), 'r')
+        dataset_inputs, dataset_outputs = json.load(dataset_file)
+        return np.array(dataset_inputs), np.array(dataset_outputs)
+
 
 if __name__ == '__main__':
-    G = EqGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
-                    max_depth=2,
-                    X=np.linspace(0.1, 3.1, 30))
-    eq_list = G.gen_all_eqs()
+    DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
+                          max_depth=2,
+                          X=np.linspace(0.1, 3.1, 30))
+    eq_list = DG.gen_all_eqs()
+    eq_list = DG.remove_duplicates(eq_list)
     print('eq_list', eq_list)
-    print(len(eq_list))
-    eq_list = G.remove_duplicates(eq_list)
-    print('eq_list', eq_list)
-    print(len(eq_list))
-    dataset_input, dataset_output = G.get_dataset(eq_list)
-    print(dataset_input)
-    for i in range(len(dataset_output)):
-        print(len(dataset_output[i]), eq_list[i], dataset_output[i])
-    G.save_dataset('dataset.json')
+    print('len(eq_list)', len(eq_list))
+    DG.get_dataset(eq_list)
+    DG.save_dataset('dataset.json')
+
+    dataset_input, dataset_output = DG.load_dataset('dataset.json')
+    print('len(DG.tokens)', len(DG.tokens))
+    print('dataset_input.shape', dataset_input.shape)
+    print('dataset_output.shape', dataset_output.shape)
