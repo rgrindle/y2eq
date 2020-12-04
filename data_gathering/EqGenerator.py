@@ -97,10 +97,6 @@ class EqGenerator:
                                                       S_locs[:-1]))
             return next_level
 
-# def get_func_form(self, expr):
-#     assert len(expr.args) <= 10
-#     return '+'.join(['c{}*{}'.format(i, a) for i, a in enumerate(expr.args)])
-
     def format_expr_str(self, expr_str: str):
         return sympy.sympify(expr_str).expand()
 
@@ -110,20 +106,34 @@ class EqGenerator:
         _, indices = np.unique(eq_list_no_coeff, return_index=True)
         return [eq_list_no_coeff[i] for i in indices]
 
-    def remove_coeff_term(self, term: str) -> str:
-        if term[0].isdigit():
-            return term[2:]
-        else:
+    def remove_const_mult_at(self, term: str, index: int) -> str:
+        end_index = index
+        while term[end_index].isdigit():
+            end_index += 1
+        if end_index == index:
             return term
+        else:
+            return term[:index] + term[end_index+1:]
+
+    def remove_coeff_term(self, term: str) -> str:
+        term = self.remove_const_mult_at(term, 0)
+        paren_indices = [i+1 for i, t in enumerate(term) if t == '(']
+        for i in paren_indices:
+            term = self.remove_const_mult_at(term, i)
+        return term
 
     def remove_coeff(self, expr):
         term_list = str(expr).split('+')
         no_coeff_terms = [self.remove_coeff_term(t.strip()) for t in term_list]
         return '+'.join(no_coeff_terms)
 
+# def get_func_form(self, expr):
+#     assert len(expr.args) <= 10
+#     return '+'.join(['c{}*{}'.format(i, a) for i, a in enumerate(expr.args)])
+
 
 if __name__ == '__main__':
-    G = EqGenerator(num_args={'*': 2, '+': 2},
+    G = EqGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
                     max_depth=2)
     eq_list = G.gen_all_eqs()
     print('eq_list', eq_list)
