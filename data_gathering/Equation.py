@@ -33,13 +33,19 @@ class Equation:
         if type(eq) is str:
             eq = sympy.sympify(eq)
         self.eq = eq.expand()
-        self.eq = self.get_eq_no_coeff()
-        self.eq_f_str = str(self.eq).replace('sin', 'np.sin')
-        self.eq_str = str(self.eq).replace('**', '^')
-        self.get_func_form()
+
+        if str(self.eq) == '0':
+            self.eq_str = '0'
+            self.eq_f_str = '0*x[0]'
+            self.func_form = '0*x[0]+c[0]'
+        else:
+            self.eq = self.get_eq_no_coeff()
+            self.eq_f_str = str(self.eq).replace('sin', 'np.sin')
+            self.eq_str = str(self.eq).replace('**', '^')
+            self.get_func_form()
 
     def __str__(self):
-        return self.eq
+        return self.eq_str
 
     def __repr__(self):
         return 'Equation({})'.format(self)
@@ -55,7 +61,7 @@ class Equation:
 
     def remove_coeff_mult_at(self, term: str, index: int) -> str:
         end_index = index
-        while term[end_index].isdigit():
+        while end_index < len(term) and term[end_index].isdigit():
             end_index += 1
         if end_index == index:
             return term
@@ -72,12 +78,17 @@ class Equation:
     @dont_recompute_if_exists
     def get_eq_no_coeff(self) -> str:
         no_coeff_terms = [self.remove_coeff_term(t) for t in self.get_terms()]
+        try:
+            no_coeff_terms.remove('')
+        except ValueError:
+            pass
         self.eq_no_coeff = '+'.join(no_coeff_terms)
         return self.eq_no_coeff
 
     @dont_recompute_if_exists
     def get_f(self):
-        self.f = eval('lambda x, c: {}'.format(self.func_form))
+        print(self.func_form, self.eq_str)
+        self.f = eval('lambda x0, c: {}'.format(self.func_form))
         return self.f
 
     def eval(self, X):
@@ -86,20 +97,21 @@ class Equation:
 
     def get_func_form(self):
         coeff_subscript = 0
-        func_form_str = []
-        for char in self.eq_f_str:
-            if char == 'x':
-                func_form_str.append('c[{}]*{}'.format(coeff_subscript, char))
+        func_form_list = []
+        for i, char in enumerate(self.eq_f_str):
+            if char == 'x' and self.eq_f_str[i+1] == '0':
+                func_form_list.append('c[{}]*{}'.format(coeff_subscript, char))
                 coeff_subscript += 1
             else:
-                func_form_str.append(char)
-        self.func_form = ''.join(func_form_str)
-        self.num_coeffs = coeff_subscript
+                func_form_list.append(char)
+        func_form_list.append('+c[{}]'.format(coeff_subscript))
+        self.func_form = ''.join(func_form_list)
+        self.num_coeffs = coeff_subscript+1
         return self.func_form
 
 
 if __name__ == '__main__':
-    x = sympy.symbols('x')
+    x = sympy.symbols('x0')
     eq = Equation(2*x**2+x)
     print(eq)
     print(eq.get_func_form())
