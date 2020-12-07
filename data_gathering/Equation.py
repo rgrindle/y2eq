@@ -72,9 +72,17 @@ class Equation:
         if 'x0' not in term:
             return ''
         term = self.remove_coeff_mult_at(term, 0)
-        paren_indices = [i+1 for i, t in enumerate(term) if t == '(']
-        for i in paren_indices:
-            term = self.remove_coeff_mult_at(term, i)
+        lf_paren_ind = [i+1 for i, t in enumerate(term) if t == '(']
+        rt_paren_ind = [i+1 for i, t in enumerate(term) if t == ')']
+
+        for lf_i, rt_i in zip(lf_paren_ind, reversed(rt_paren_ind)):
+            # remove hidden coeffs (e.g. x*log(2) -> x)
+            if 'x0' not in term[lf_i:rt_i]:
+                term = term[:lf_i-5] + term[rt_i:]
+
+            # remove more obvious coeffs (e.g. log(2*x) -> log(x))
+            else:
+                term = self.remove_coeff_mult_at(term, lf_i)
         return term
 
     @dont_recompute_if_exists
@@ -90,8 +98,13 @@ class Equation:
 
     @dont_recompute_if_exists
     def get_f(self):
-        self.f = eval('lambda x0, c: {}'.format(self.func_form))
-        return self.f
+        try:
+            self.f = eval('lambda x0, c: {}'.format(self.func_form))
+            return self.f
+        except SyntaxError as e:
+            print(str(e))
+            print(self.eq)
+            exit()
 
     def eval(self, X):
         self.get_f()
