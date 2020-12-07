@@ -76,8 +76,13 @@ class DatasetGenerator:
             else:
                 self.rules.append('(S{}S)'.format(p))
 
+        print('Generating all equations '
+              '(max_depth={}) ...'.format(self.max_depth))
         self.gen_all_eqs()
-        self.all_eqs = np.unique(self.all_eqs)
+        print('Found', len(self.all_eqs), 'equations')
+        print('Reducing to unique equation ...')
+        self.all_eqs = np.unique(self.all_eqs).tolist()
+        print('Found', len(self.all_eqs), 'unique equations')
 
     def gen_all_eqs(self):
         self.all_eqs = [Equation(eq) for eq in self.__gen_all_eqs()]
@@ -182,6 +187,14 @@ class DatasetGenerator:
                   sort_keys=False,
                   indent=4)
 
+    def save_eqs(self, save_name: str,
+                 save_loc: str = os.path.join('..', 'datasets')) -> None:
+        json.dump([str(eq) for eq in self.all_eqs],
+                  open(os.path.join(save_loc, save_name), 'w'),
+                  separators=(',', ':'),
+                  sort_keys=False,
+                  indent=4)
+
     def load_dataset(self, save_name: str,
                      save_loc: str = os.path.join('..', 'datasets')):
         dataset_file = open(os.path.join(save_loc, save_name), 'r')
@@ -192,13 +205,24 @@ class DatasetGenerator:
 if __name__ == '__main__':
     DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1,
                                     'log': 1, 'exp': 1},
-                          max_depth=3,
+                          max_depth=2,
                           X=np.linspace(0.1, 3.1, 30),
                           rng=np.random.RandomState(0),
                           include_zero_eq=True)
-    print('len(DG.dataset_eqs)', len(DG.dataset_eqs))
+
+    print('Saving unique equations ...')
+    unique_eqs_save_file = 'unique_eqs_maxdepth{}.json'.format(DG.max_depth)
+    DG.save_eqs(unique_eqs_save_file)
+    print('Unique equations saved:', unique_eqs_save_file)
+
+    print('Formatting unique equations into dataset ...')
     DG.get_dataset()
-    DG.save_dataset('dataset_maxdepth{}.json'.format(DG.max_depth))
+    print('Dataset has', len(DG.dataset_eqs), 'observations')
+
+    print('Saving dataset ...')
+    dataset_save_file = 'dataset_maxdepth{}.json'.format(DG.max_depth)
+    DG.save_dataset(dataset_save_file)
+    print('Dataset saved:', dataset_save_file)
 
     if len(DG.non_dataset_eqs) > 0:
         print('Equations excluded from datatset '
