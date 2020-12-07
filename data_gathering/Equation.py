@@ -18,9 +18,6 @@ def dont_recompute_if_exists(func):
     def wrapper(self):
         attr_to_get = func.__name__[4:]
         if hasattr(self, attr_to_get):
-            print('why did I need to call this twices')
-            print('calling', func.__name__)
-            exit()
             return self.__getattribute__(attr_to_get)
         else:
             return func(self)
@@ -93,7 +90,6 @@ class Equation:
 
     @dont_recompute_if_exists
     def get_f(self):
-        print(self.func_form, self.eq_str, self.eq)
         self.f = eval('lambda x0, c: {}'.format(self.func_form))
         return self.f
 

@@ -21,6 +21,8 @@ import os
 import json
 from typing import List, Tuple, Dict
 
+np.seterr(all='raise')
+
 
 def insert_str(string, to_insert, index):
     return string[:index] + to_insert + string[index+1:]
@@ -126,21 +128,35 @@ class DatasetGenerator:
 
     def get_dataset(self) -> Tuple[np.ndarray]:
         self.dataset_input = []
+        self.non_dataset_eqs = []
+        self.dataset_eqs = []
         for eq in self.all_eqs:
-            self.dataset_input.append(self.get_Y(eq))
+            try:
+                Y = self.get_Y(eq)
+                self.dataset_eqs.append(eq)
+            except FloatingPointError:
+                self.non_dataset_eqs.append(eq)
+                continue
+            self.dataset_input.append(Y)
             self.get_eq_seq(eq)
-        self.dataset_output = []
         self.pad_eq_seqs()
-        self.dataset_output = [self.get_onehot(e) for e in self.all_eqs]
+        self.dataset_output = [self.get_onehot(e) for e in self.dataset_eqs]
 
     def pad_eq_seqs(self):
-        max_len_output = max([len(eq.eq_seq) for eq in self.all_eqs])
-        for eq in self.all_eqs:
+        max_len_output = max([len(eq.eq_seq) for eq in self.dataset_eqs])
+        for eq in self.dataset_eqs:
             eq.eq_seq.extend(['STOP']*(max_len_output-len(eq.eq_seq)))
 
     def get_Y(self, eq) -> np.ndarray:
-        eq.coeffs = self.rng.uniform(-10, 10, eq.num_coeffs)
-        return eq.eval(self.X)
+        iter_count = 0
+        while True:
+            try:
+                eq.coeffs = self.rng.uniform(-5, 5, eq.num_coeffs)
+                return eq.eval(self.X)
+            except FloatingPointError:
+                iter_count += 1
+                if iter_count > 100:
+                    raise FloatingPointError
 
     def get_eq_seq(self, eq):
         i = 0
@@ -176,10 +192,17 @@ class DatasetGenerator:
 if __name__ == '__main__':
     DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1,
                                     'log': 1, 'exp': 1},
-                          max_depth=2,
+                          max_depth=3,
                           X=np.linspace(0.1, 3.1, 30),
                           rng=np.random.RandomState(0),
                           include_zero_eq=True)
-    print('len(DG.all_eqs)', len(DG.all_eqs))
+    print('len(DG.dataset_eqs)', len(DG.dataset_eqs))
     DG.get_dataset()
     DG.save_dataset('dataset_maxdepth{}.json'.format(DG.max_depth))
+
+    if len(DG.non_dataset_eqs) > 0:
+        print('Equations excluded from datatset '
+              'because suitable constants could not '
+              'be found are listed below.')
+        for eq in DG.non_dataset_eqs:
+            print(eq)
