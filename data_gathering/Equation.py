@@ -43,6 +43,7 @@ class Equation:
                 self.eq_f_str = self.eq_f_str.replace(prim, 'np.'+prim)
             self.eq_str = str(self.eq).replace('**', '^')
             self.get_func_form()
+        print(eq, self.eq)
 
     def __str__(self):
         return self.eq_str
@@ -71,18 +72,21 @@ class Equation:
     def remove_coeff_term(self, term: str) -> str:
         if 'x0' not in term:
             return ''
+
         term = self.remove_coeff_mult_at(term, 0)
         lf_paren_ind = [i+1 for i, t in enumerate(term) if t == '(']
-        rt_paren_ind = [i+1 for i, t in enumerate(term) if t == ')']
+        rt_paren_ind = [i for i, t in enumerate(term) if t == ')']
 
+        # remove hidden coeffs (e.g. x*log(2) -> x)
         for lf_i, rt_i in zip(lf_paren_ind, reversed(rt_paren_ind)):
-            # remove hidden coeffs (e.g. x*log(2) -> x)
             if 'x0' not in term[lf_i:rt_i]:
-                term = term[:lf_i-5] + term[rt_i:]
+                term = term[:lf_i-5] + term[rt_i+1:]
+                break
 
-            # remove more obvious coeffs (e.g. log(2*x) -> log(x))
-            else:
-                term = self.remove_coeff_mult_at(term, lf_i)
+        # remove more obvious coeffs (e.g. log(2*x) -> log(x))
+        for lf_i in lf_paren_ind:
+            term = self.remove_coeff_mult_at(term, lf_i)
+
         return term
 
     @dont_recompute_if_exists
@@ -127,6 +131,7 @@ class Equation:
 
 if __name__ == '__main__':
     x = sympy.symbols('x0', real=True)
-    eq = Equation(2*x**2+x)
+    eq = Equation('exp(2*exp(x0))')
     print(eq)
     print(eq.get_func_form())
+    # exp(2*exp(x0)) exp(e
