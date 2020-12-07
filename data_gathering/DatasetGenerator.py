@@ -35,7 +35,8 @@ class DatasetGenerator:
                  num_args: Dict[str, int],
                  max_depth: int,
                  X: np.ndarray,
-                 rng) -> None:
+                 rng,
+                 include_zero_eq: bool = False) -> None:
         """
         PARAMETERS
         ----------
@@ -55,9 +56,10 @@ class DatasetGenerator:
         self.max_depth = max_depth
         self.X = X
         self.rng = rng
+        self.include_zero_eq = include_zero_eq
 
         self.tokens = list(num_args.keys())
-        self.tokens += ['x', '(', ')', '^']
+        self.tokens += ['x0', '(', ')', '^']
         self.tokens += [str(d) for d in range(10)]
         self.tokens += ['START', 'STOP']
         self.onehot_encoder = OneHotEncoder().fit([[t] for t in self.tokens])
@@ -65,7 +67,7 @@ class DatasetGenerator:
         # Construct the rules from primitive set and num_args
         # All rules convert S to something (e.g. S -> (S+S))
         # so I use shorthand by not specifying the LHS.
-        self.rules = ['x']
+        self.rules = ['x0']
         for p in num_args:
             if num_args[p] == 1:
                 self.rules.append('{}(S)'.format(p))
@@ -77,6 +79,8 @@ class DatasetGenerator:
 
     def gen_all_eqs(self):
         self.all_eqs = [Equation(eq) for eq in self.__gen_all_eqs()]
+        if self.include_zero_eq:
+            self.all_eqs.insert(0, Equation('0'))
         return self.all_eqs
 
     def __gen_all_eqs(self, str_list: List[str] = ['S'],
@@ -170,18 +174,12 @@ class DatasetGenerator:
 
 
 if __name__ == '__main__':
-    DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1},
+    DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1,
+                                    'log': 1, 'exp': 1},
                           max_depth=2,
                           X=np.linspace(0.1, 3.1, 30),
-                          rng=np.random.RandomState(0))
-    print('eq_list')
-    for eq in DG.all_eqs:
-        print(eq)
+                          rng=np.random.RandomState(0),
+                          include_zero_eq=True)
     print('len(DG.all_eqs)', len(DG.all_eqs))
     DG.get_dataset()
-    DG.save_dataset('dataset.json')
-
-    dataset_input, dataset_output = DG.load_dataset('dataset.json')
-    print('len(DG.tokens)', len(DG.tokens))
-    print('dataset_input.shape', dataset_input.shape)
-    print('dataset_output.shape', dataset_output.shape)
+    DG.save_dataset('dataset_maxdepth{}.json'.format(DG.max_depth))
