@@ -36,11 +36,14 @@ class Equation:
 
         if str(self.eq) == '0':
             self.eq_str = '0'
-            self.eq_f_str = '0*x[0]'
-            self.func_form = '0*x[0]+c[0]'
+            self.eq_f_str = '0*x0[0]'
+            self.func_form = '0*x0[0]+c[0]'
+            self.num_coeffs = 1
         else:
             self.eq = self.get_eq_no_coeff()
-            self.eq_f_str = str(self.eq).replace('sin', 'np.sin')
+            self.eq_f_str = str(self.eq)
+            for prim in ['sin', 'exp', 'log']:
+                self.eq_f_str = self.eq_f_str.replace(prim, 'np.'+prim)
             self.eq_str = str(self.eq).replace('**', '^')
             self.get_func_form()
 
@@ -69,6 +72,8 @@ class Equation:
             return term[:index] + term[end_index+1:]
 
     def remove_coeff_term(self, term: str) -> str:
+        if 'x0' not in term:
+            return ''
         term = self.remove_coeff_mult_at(term, 0)
         paren_indices = [i+1 for i, t in enumerate(term) if t == '(']
         for i in paren_indices:
@@ -79,6 +84,7 @@ class Equation:
     def get_eq_no_coeff(self) -> str:
         no_coeff_terms = [self.remove_coeff_term(t) for t in self.get_terms()]
         try:
+            # this removes vertical shifts
             no_coeff_terms.remove('')
         except ValueError:
             pass
@@ -87,7 +93,7 @@ class Equation:
 
     @dont_recompute_if_exists
     def get_f(self):
-        print(self.func_form, self.eq_str)
+        print(self.func_form, self.eq_str, self.eq)
         self.f = eval('lambda x0, c: {}'.format(self.func_form))
         return self.f
 
@@ -111,7 +117,7 @@ class Equation:
 
 
 if __name__ == '__main__':
-    x = sympy.symbols('x0')
+    x = sympy.symbols('x0', real=True)
     eq = Equation(2*x**2+x)
     print(eq)
     print(eq.get_func_form())
