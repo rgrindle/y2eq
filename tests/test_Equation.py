@@ -42,6 +42,11 @@ def test_multi_term_coeff_removal_log2():
     yield check_assert, str(E.eq) == 'x0*log(x0)+x0'
 
 
+def test_multi_term_coeff_removal_log3():
+    E = Equation('sin(log(x0) + log(2))')
+    yield check_assert, str(E.eq) == 'sin(log(x0))'
+
+
 def test_multi_term_coeff_removal_exp():
     E = Equation('exp(2*exp(x0))')
     yield check_assert, str(E.eq) == 'exp(exp(x0))'

@@ -58,6 +58,7 @@ class Equation:
             self.eval(np.array([1.]))
         except FloatingPointError:
             pass
+
     def __str__(self):
         return self.eq_str
 
@@ -120,6 +121,11 @@ class Equation:
             for lf_i, rt_i in matched_paren_ind:
                 subterm_list = self.get_terms(term[lf_i+1:rt_i])
             snc = [self.remove_coeff_term(subterm) for subterm in subterm_list]
+            try:
+                # this removes vertical shifts
+                snc.remove('')
+            except ValueError:
+                pass
             return term[:lf_i+1] + '+'.join(snc) + term[rt_i:]
 
     @dont_recompute_if_exists
