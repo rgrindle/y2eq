@@ -38,7 +38,8 @@ class DatasetGenerator:
                  max_depth: int,
                  X: np.ndarray,
                  rng,
-                 include_zero_eq: bool = False) -> None:
+                 include_zero_eq: bool = False,
+                 load_eq_save_name: str = None) -> None:
         """
         PARAMETERS
         ----------
@@ -76,13 +77,16 @@ class DatasetGenerator:
             else:
                 self.rules.append('(S{}S)'.format(p))
 
-        print('Generating all equations '
-              '(max_depth={}) ...'.format(self.max_depth))
-        self.gen_all_eqs()
-        print('Found', len(self.all_eqs), 'equations')
-        print('Reducing to unique equation ...')
-        self.all_eqs = np.unique(self.all_eqs).tolist()
-        print('Found', len(self.all_eqs), 'unique equations')
+        if load_eq_save_name is None:
+            print('Generating all equations '
+                  '(max_depth={}) ...'.format(self.max_depth))
+            self.gen_all_eqs()
+            print('Found', len(self.all_eqs), 'equations')
+            print('Reducing to unique equation ...')
+            self.all_eqs = np.unique(self.all_eqs).tolist()
+            print('Found', len(self.all_eqs), 'unique equations')
+        else:
+            self.load_eqs(load_eq_save_name)
 
     def gen_all_eqs(self):
         self.all_eqs = [Equation(eq) for eq in self.__gen_all_eqs()]
@@ -201,26 +205,52 @@ class DatasetGenerator:
         dataset_inputs, dataset_outputs = json.load(dataset_file)
         return np.array(dataset_inputs), np.array(dataset_outputs)
 
+    def load_eqs(self, save_name: str,
+                 save_loc: str = os.path.join('..', 'datasets')):
+        dataset_file = open(os.path.join(save_loc, save_name), 'r')
+        eq_strs = json.load(dataset_file)
+        self.all_eqs = [Equation(eq.replace('^', '**')) for eq in eq_strs]
+
 
 if __name__ == '__main__':
+
+    def yes_or_no(message):
+        answer = None
+        while answer not in ('yes', 'no'):
+            answer = input(message+' (yes or no) ')
+        return answer == 'yes'
+
+    max_depth = 3
+    unique_eqs_save_file = 'unique_eqs_maxdepth{}.json'.format(max_depth)
+    dataset_save_file = 'dataset_maxdepth{}.json'.format(max_depth)
+    save_path = os.path.join('..', 'datasets')
+
+    if os.path.isfile(os.path.join(save_path, unique_eqs_save_file)):
+        print('Found: ', unique_eqs_save_file)
+        use_file = yes_or_no('Use this file to create dataset?')
+    else:
+        use_file = False
+
+    load_eq_save_name = unique_eqs_save_file if use_file else None
+
     DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1,
                                     'log': 1, 'exp': 1},
-                          max_depth=2,
+                          max_depth=max_depth,
                           X=np.linspace(0.1, 3.1, 30),
                           rng=np.random.RandomState(0),
-                          include_zero_eq=True)
+                          include_zero_eq=True,
+                          load_eq_save_name=load_eq_save_name)
 
-    print('Saving unique equations ...')
-    unique_eqs_save_file = 'unique_eqs_maxdepth{}.json'.format(DG.max_depth)
-    DG.save_eqs(unique_eqs_save_file)
-    print('Unique equations saved:', unique_eqs_save_file)
+    if not use_file:
+        print('Saving unique equations ...')
+        DG.save_eqs(unique_eqs_save_file)
+        print('Unique equations saved:', unique_eqs_save_file)
 
     print('Formatting unique equations into dataset ...')
     DG.get_dataset()
     print('Dataset has', len(DG.dataset_eqs), 'observations')
 
     print('Saving dataset ...')
-    dataset_save_file = 'dataset_maxdepth{}.json'.format(DG.max_depth)
     DG.save_dataset(dataset_save_file)
     print('Dataset saved:', dataset_save_file)
 
