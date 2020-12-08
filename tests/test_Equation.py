@@ -6,8 +6,8 @@ def test_positive_const_eq():
     E = Equation('0')
     yield check_assert, str(E) == '0'
     yield check_assert, E.eq_str == '0'
-    yield check_assert, E.eq_f_str == '0*x0[0]'
-    yield check_assert, E.func_form == '0*x0[0]+c[0]'
+    yield check_assert, E.eq_f_str == '0*x0'
+    yield check_assert, E.func_form == '0*x0+c[0]'
     yield check_assert, E.num_coeffs == 1
 
 

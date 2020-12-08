@@ -35,8 +35,8 @@ class Equation:
         if eq == '0':
             self.eq = '0'
             self.eq_str = '0'
-            self.eq_f_str = '0*x0[0]'
-            self.func_form = '0*x0[0]+c[0]'
+            self.eq_f_str = '0*x0'
+            self.func_form = '0*x0+c[0]'
             self.num_coeffs = 1
         else:
             if type(eq) is str:
