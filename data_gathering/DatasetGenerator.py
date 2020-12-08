@@ -39,7 +39,8 @@ class DatasetGenerator:
                  X: np.ndarray,
                  rng,
                  include_zero_eq: bool = False,
-                 load_eq_save_name: str = None) -> None:
+                 load_eq_save_name: str = None,
+                 num_coeff_sets: int = 1) -> None:
         """
         PARAMETERS
         ----------
@@ -60,6 +61,7 @@ class DatasetGenerator:
         self.X = X
         self.rng = rng
         self.include_zero_eq = include_zero_eq
+        self.num_coeff_sets = num_coeff_sets
 
         self.tokens = list(num_args.keys())
         self.tokens += ['x0', '(', ')', '^']
@@ -141,13 +143,14 @@ class DatasetGenerator:
         self.dataset_eqs = []
         for eq in self.all_eqs:
             try:
-                Y = self.get_Y(eq)
-                self.dataset_eqs.append(eq)
+                for _ in range(self.num_coeff_sets):
+                    Y = self.get_Y(eq)
+                    self.dataset_input.append(Y)
+                    self.get_eq_seq(eq)
+                    self.dataset_eqs.append(eq)
             except FloatingPointError:
                 self.non_dataset_eqs.append(eq)
                 continue
-            self.dataset_input.append(Y)
-            self.get_eq_seq(eq)
         self.pad_eq_seqs()
         self.dataset_output = [self.get_onehot(e) for e in self.dataset_eqs]
 
@@ -220,9 +223,10 @@ if __name__ == '__main__':
             answer = input(message+' (yes or no) ')
         return answer == 'yes'
 
-    max_depth = 3
-    unique_eqs_save_file = 'unique_eqs_maxdepth{}.json'.format(max_depth)
-    dataset_save_file = 'dataset_maxdepth{}.json'.format(max_depth)
+    MAX_DEPTH = 3
+    SEED = 1
+    unique_eqs_save_file = 'unique_eqs_maxdepth{}.json'.format(MAX_DEPTH)
+    dataset_save_file = 'dataset_maxdepth{}_seed{}.json'.format(MAX_DEPTH, SEED)
     save_path = os.path.join('..', 'datasets')
 
     if os.path.isfile(os.path.join(save_path, unique_eqs_save_file)):
@@ -235,11 +239,12 @@ if __name__ == '__main__':
 
     DG = DatasetGenerator(num_args={'*': 2, '+': 2, 'sin': 1,
                                     'log': 1, 'exp': 1},
-                          max_depth=max_depth,
+                          max_depth=MAX_DEPTH,
                           X=np.linspace(0.1, 3.1, 30),
-                          rng=np.random.RandomState(0),
+                          rng=np.random.RandomState(SEED),
                           include_zero_eq=True,
-                          load_eq_save_name=load_eq_save_name)
+                          load_eq_save_name=load_eq_save_name,
+                          num_coeff_sets=1)
 
     if not use_file:
         print('Saving unique equations ...')
