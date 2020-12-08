@@ -62,6 +62,11 @@ def test_multi_term_coeff_removal_exp4():
     yield check_assert, str(E.eq) == 'sin(sin(x0**2+x0))'
 
 
+def test_multi_term_coeff_removal_exp5():
+    E = Equation('log(x0)*sin(x0)**2+log(2)*sin(x0)**2')
+    yield check_assert, str(E.eq) == 'log(x0)*sin(x0)**2+sin(x0)**2'
+
+
 def test_functional_form():
     E = Equation('x0**2+x0')
     yield check_assert, E.func_form == 'c[0]*x0**2+c[1]*x0+c[2]'

@@ -32,6 +32,7 @@ x0 = sympy.symbols('x0', real=True)
 class Equation:
 
     def __init__(self, eq):
+        print('eq', eq)
         if eq == '0':
             self.eq = '0'
             self.eq_str = '0'
@@ -44,13 +45,19 @@ class Equation:
                     eq = eq.replace(prim, 'sympy.'+prim)
                 eq = eval(eq)
             self.eq = eq.expand()
+            print('sympy', self.eq)
             self.eq = self.get_eq_no_coeff()
             self.eq_f_str = str(self.eq)
             for prim in ['sin', 'exp', 'log']:
                 self.eq_f_str = self.eq_f_str.replace(prim, 'np.'+prim)
             self.eq_str = str(self.eq).replace('**', '^')
             self.get_func_form()
-
+        print(self.eq, self.func_form)
+        self.coeffs = [1]*self.func_form.count('c')
+        try:
+            self.eval(np.array([1.]))
+        except FloatingPointError:
+            pass
     def __str__(self):
         return self.eq_str
 
@@ -97,7 +104,10 @@ class Equation:
             # remove hidden coeffs (e.g. x*log(2) -> x)
             for lf_i, rt_i in matched_paren_ind:
                 if 'x0' not in term[lf_i+1:rt_i]:
-                    term = term[:lf_i-4] + term[rt_i+1:]
+                    if term[lf_i-4] == '*':
+                        term = term[:lf_i-4] + term[rt_i+1:]
+                    else:
+                        term = term[:lf_i-3] + term[rt_i+2:]
                     break
 
             # remove more obvious coeffs (e.g. log(2*x) -> log(x))
