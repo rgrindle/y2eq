@@ -32,7 +32,6 @@ x0 = sympy.symbols('x0', real=True)
 class Equation:
 
     def __init__(self, eq):
-        print('eq', eq)
         if eq == '0':
             self.eq = '0'
             self.eq_str = '0'
@@ -41,23 +40,16 @@ class Equation:
             self.num_coeffs = 1
         else:
             if type(eq) is str:
-                for prim in ['sin', 'exp', 'log']:
+                for prim in ['sin', 'exp', 'log', 'cos(', 'cosh']:
                     eq = eq.replace(prim, 'sympy.'+prim)
                 eq = eval(eq)
             self.eq = eq.expand()
-            print('sympy', self.eq)
             self.eq = self.get_eq_no_coeff()
             self.eq_f_str = str(self.eq)
-            for prim in ['sin', 'exp', 'log']:
+            for prim in ['sin', 'exp', 'log', 'cos(', 'cosh']:
                 self.eq_f_str = self.eq_f_str.replace(prim, 'np.'+prim)
             self.eq_str = str(self.eq).replace('**', '^')
             self.get_func_form()
-        print(self.eq, self.func_form)
-        self.coeffs = [1]*self.func_form.count('c')
-        try:
-            self.eval(np.array([1.]))
-        except FloatingPointError:
-            pass
 
     def __str__(self):
         return self.eq_str
