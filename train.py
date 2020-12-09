@@ -12,6 +12,7 @@ NOTES:
 TODO:
 """
 import numpy as np  # type: ignore
+import pandas as pd  # type: ignoree
 from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.preprocessing import OneHotEncoder  # type: ignore
 
@@ -64,12 +65,13 @@ def train_model(model, dataset_file, batch_size, epochs,
                                  monitor='val_loss')
 
     model.compile(optimizer='adam', loss='categorical_crossentropy')
-    model.fit([encoder_inputs, decoder_inputs], decoder_targets,
-              batch_size=batch_size,
-              epochs=epochs,
-              validation_split=0.2,
-              shuffle=True,
-              callbacks=[model_cb, weights_cb])
+    history = model.fit([encoder_inputs, decoder_inputs], decoder_targets,
+                        batch_size=batch_size,
+                        epochs=epochs,
+                        validation_split=0.2,
+                        shuffle=True,
+                        callbacks=[model_cb, weights_cb])
+    pd.DataFrame(history.history).to_csv(os.path.join('models', model_name+'_history.csv'), header=False, index=False)
     return model
 
 
@@ -96,8 +98,8 @@ if __name__ == '__main__':
 
     dataset_file = 'dataset_maxdepth3_seed0_train.json'
     trained_model = train_model(model, dataset_file,
-                                batch_size=2000,
-                                epochs=2,
+                                batch_size=128,
+                                epochs=100,
                                 model_name='seq2seq_model')
     # result = eval_model(trained_model)
     # print(result)
