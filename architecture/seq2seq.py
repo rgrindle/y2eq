@@ -1,3 +1,18 @@
+"""
+AUTHOR: Ryan Grindle
+
+LAST MODIFIED: Dec 8, 2020
+
+PURPOSE: This is a basic seq2seq model. It can be used
+         as the achitecture in train.py
+
+NOTES: This architecture has 1 layer in the encoder
+       and one layer in the decoder. It uses LSTM's
+       and does not use attention.
+
+TODO:
+"""
+
 from tensorflow import keras
 from tensorflow.keras.layers import Dense, LSTM, Input
 
@@ -13,10 +28,3 @@ dec_rec = LSTM(LATENTDIM, return_sequences=True)(decoder_inputs, initial_state=[
 dec_dense = Dense(OUTPUT_LENGTH, activation='softmax')(dec_rec)
 model = keras.Model([encoder_inputs, decoder_inputs],
                     [dec_dense])
-
-if __name__ == '__main__':
-    import numpy as np
-    fake_input = np.zeros((10, 1, 30))
-    output = model.predict([fake_input, output])
-    print(output.shape)
-
