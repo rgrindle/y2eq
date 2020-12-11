@@ -20,6 +20,8 @@ class GLU(keras.layers.Layer):
         super(GLU, self).__init__()
 
     def call(self, inputs):
+        assert len(inputs.shape) == 3, 'GLU ERROR: Expected 3D input.'
+        assert inputs.shape[2] == 2, 'GLU ERROR: Expected inputs.shape[2] == 2'
         A = inputs[:, :, 0]
         B = inputs[:, :, 1]
         return tf.math.multiply(A, tf.math.sigmoid(B))
