@@ -16,15 +16,10 @@ from tensorflow import keras
 
 
 class GLU(keras.layers.Layer):
-    def __init__(self, units, input_dim):
+    def __init__(self, units=None, input_dim=None):
         super(GLU, self).__init__()
-        w_init = tf.random_normal_initializer()
-        self.w = tf.Variable(
-            initial_value=w_init(shape=(input_dim, units),
-                                 dtype='float32'),
-            trainable=True,
-        )
 
     def call(self, inputs):
-        assert len(inputs) == 2, 'In GLU.call, expected inputs to be a list of length 2.'
-        return tf.math.multipy(inputs[0], tf.math.sigmoid(inputs[1]))
+        A = inputs[:, :, 0]
+        B = inputs[:, :, 1]
+        return tf.math.multiply(A, tf.math.sigmoid(B))
