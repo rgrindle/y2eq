@@ -33,14 +33,13 @@ class Attention(keras.layers.Layer):
         super(Attention, self).__init__()
 
     def call(self, inputs):
-        """Expects inputs = [enc_outputs, atten_outputs]"""
-        assert len(inputs) == 2
-        assert inputs[0].shape[2] == inputs[1].shape[2]
-        score = keras.layers.dot(inputs, axes=(2, 2))
+        """Expects inputs = [enc_outputs, atten_outputs, enc_residual]"""
+        assert len(inputs) == 3
+        assert inputs[0].shape[2] == inputs[1].shape[2] == inputs[2].shape[2]
+        score = keras.layers.dot(inputs[:2], axes=(2, 2))
         print('score', score.shape)
         alignment = keras.activations.softmax(score, axis=-1)
         print('alignment', alignment.shape)
-        context = keras.layers.dot([alignment, inputs[0]], axes=(1, 1))
-        print('Not quite right need to add something')  # TODO
+        context = keras.layers.dot([alignment, tf.math.add(inputs[0], inputs[2])], axes=(1, 1))
         print('context', context.shape)
         return context
