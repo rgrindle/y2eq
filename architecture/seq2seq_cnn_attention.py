@@ -1,12 +1,30 @@
-from custom_layers import GLU, Attention, PositionalEncoding
+"""
+AUTHOR: Ryan Grindle
+
+LAST MODIFIED: Dec 14, 2020
+
+PURPOSE: Reimplementation of architecture found in
+
+         Biggio, Luca, Tommaso Bendinelli, Aurelien Lucchi,
+         and Giambattista Parascandolo. "A Seq2Seq approach
+         to Symbolic Regression."
+
+NOTES: Not sure on some details like CONSISTENT_SIZE,
+       kernel size in conv layers, positional encoding
+       used.
+
+TODO:
+"""
+
+from architecture.custom_layers import GLU, Attention, PositionalEncoding
 
 from tensorflow import keras
 from tensorflow.keras.layers import Dense, Input, Conv1D, ZeroPadding1D, Add
 
 INPUT_LENGTH = 1
-NUM_OUTPUT_TOKENS = DICTIONARY_LENGTH = 21
-MAX_OUTPUT_LENGTH = 13
-CONSISTENT_SIZE = 10
+NUM_OUTPUT_TOKENS = DICTIONARY_LENGTH = 22
+MAX_OUTPUT_LENGTH = 95
+CONSISTENT_SIZE = 100
 
 enc_inputs = Input(shape=((30, 1)), name='enc_input')
 enc_inputs_with_pos_enc = PositionalEncoding()(enc_inputs)
