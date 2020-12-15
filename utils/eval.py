@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 14, 2020
+LAST MODIFIED: Dec 15, 2020
 
 PURPOSE: Evaluate the model after training.
 
@@ -11,13 +11,14 @@ TODO:
 """
 from train import load_and_format_dataset, onehot2token
 from eqlearner.dataset.processing.tokenization import default_map, reverse_map
+from architecture.seq2seq_cnn_attention_test import model as test_model
 
 from scipy.optimize import minimize
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import keras
 import numpy as np
 import sympy
-from sympy import sin, log, exp, cos, cosh, E
+from sympy import sin, log, exp, cos, cosh, E  # noqa: F401
 
 import os
 
@@ -41,14 +42,16 @@ def get_onehot_from_softmax(softmax):
 
 
 def get_string(string, mapping=None, sym_mapping=None):
-    tokenized_dict = {}
+    """Modified version of
+    eqlearner.dataset.processing.tokenization.get_string.
+    This version places 'END' and removes everything after it."""
     if not mapping:
         tmp = default_map()
-        mapping = reverse_map(tmp,symbols=sym_mapping)
+        mapping = reverse_map(tmp, symbols=sym_mapping)
     mapping_string = mapping.copy()
-    mapping_string[12] = "START"
-    mapping_string[13] = "END"
-    curr = "".join([mapping_string[digit] for digit in string])
+    mapping_string[12] = 'START'
+    mapping_string[13] = 'END'
+    curr = ''.join([mapping_string[digit] for digit in string])
     if len(string) < 2:
         return RuntimeError
     if len(string) == 2:
@@ -76,28 +79,32 @@ def eval_eq(eq, support):
 
 def is_valid_eq(eq_list, support):
     mask = []
-    y_values = []
     for eq in eq_list:
         try:
-            y = eval_eq(eq, support)
-            y_values.append(y)
+            x = sympy.symbols('x')
+            sympy.lambdify(x, eval(eq))
+            # Don't evaluate because consts=1
+            # might be wrong.
             mask.append(True)
-        except (SyntaxError, TypeError):
+        except (SyntaxError, TypeError, AttributeError):
             mask.append(False)
-    return np.array(mask), y_values
+    return np.array(mask)
 
 
 def eval_model(model, inputs, support):
     output = model.predict(inputs)
     decoded_output = decode(output)
-    mask, y_hat = is_valid_eq(decoded_output, support)
-    num_invalid = len(mask)-len(y_hat)
+    mask = is_valid_eq(decoded_output, support)
+    num_invalid = len(mask)-sum(mask)
     print('Found {} invalid equations'.format(num_invalid))
-    return decoded_output, mask, y_hat
+    return decoded_output, mask
 
 
 def load_model(model_name):
     return keras.models.load_model(os.path.join('models', 'model_'+model_name))
+    # trained_model = keras.models.load_model(os.path.join('models', 'model_'+model_name))
+    # test_model.set_weights(trained_model.get_weights())
+    # return test_model
 
 
 def pad(x):
@@ -107,8 +114,8 @@ def pad(x):
 def apply_coeffs(eq):
     coeff_index = 0
     eq_str_list = []
-    for e in eq:
-        if e == 'x':
+    for i, e in enumerate(eq):
+        if e == 'x' and (i == 0 or eq[i-1] != 'e'):
             eq_str_list.append('c[{}]*x'.format(coeff_index))
             coeff_index += 1
         else:
@@ -123,7 +130,7 @@ def apply_coeffs(eq):
             c_eq_str_list.append('c[{}]*'.format(coeff_index)+term)
             coeff_index += 1
     c_eq = '+'.join(c_eq_str_list)
-    for prim in ['sin', 'log', 'exp', 'e']:
+    for prim in ['sin', 'log', 'exp']:
         c_eq = c_eq.replace(prim, 'np.'+prim)
     return c_eq, coeff_index
 
@@ -133,11 +140,12 @@ def RMSE(y, y_hat):
 
 
 def fit_eq(eq_list, support, y_list):
-    x = sympy.symbols('x')
+    x = sympy.symbols('x')  # noqa: F841
     coeff_list = []
     rmse_list = []
     for eq, y in zip(eq_list, y_list):
         eq_c, num_coeffs = apply_coeffs(eq)
+        print(eq_c)
         f_hat = eval('lambda c, x:'+eq_c)
         loss = lambda c, x: RMSE(f_hat(c, x.T), y)
         x0 = np.ones(num_coeffs)
@@ -157,9 +165,9 @@ if __name__ == '__main__':
     x, _, info = load_and_format_dataset(datset_type='test', return_info=True)
     pad(x)  # depending on dataset max decoder lenght may vary
     model = load_model('seq2seq_cnn_attention_model')
-    decoded_output, mask, y_hat = eval_model(model,
-                                             inputs=x,
-                                             support=np.array(info['Support']))
+    decoded_output, mask = eval_model(model,
+                                      inputs=x,
+                                      support=np.array(info['Support']))
 
     scaler = MinMaxScaler()
     scaler.min_ = info['min_']

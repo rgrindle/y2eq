@@ -12,7 +12,7 @@ TODO:
 """
 
 
-import sympy
+import sympy  # type: ignore
 
 
 def get_func_form(expr):
@@ -43,6 +43,12 @@ if __name__ == '__main__':
 
     no_coeff_expr = remove_coeff(expr)
     print('no_coeff_expr', no_coeff_expr)
+
+    import numpy as np  # type: ignore
+    lambdafied = np.vectorize(sympy.utilities.lambdify(x, no_coeff_expr))
+    print('lambdafied', lambdafied)
+    print('lambdafied(3)', lambdafied(3))
+    print('lambdafied([1, 2, 3])', lambdafied([1, 2, 3]))
 
     # expr = x*sympy.exp(x)+x**2+x+x**2+x**3 + sympy.sin(x*x)
     # print(expr)

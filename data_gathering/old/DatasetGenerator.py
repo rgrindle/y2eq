@@ -224,7 +224,7 @@ if __name__ == '__main__':
         return answer == 'yes'
 
     MAX_DEPTH = 3
-    SEED = 1
+    SEED = 0
     unique_eqs_save_file = 'unique_eqs_maxdepth{}.json'.format(MAX_DEPTH)
     dataset_save_file = 'dataset_maxdepth{}_seed{}.json'.format(MAX_DEPTH, SEED)
     save_path = os.path.join('..', 'datasets')
@@ -244,7 +244,7 @@ if __name__ == '__main__':
                           rng=np.random.RandomState(SEED),
                           include_zero_eq=True,
                           load_eq_save_name=load_eq_save_name,
-                          num_coeff_sets=1)
+                          num_coeff_sets=40)
 
     if not use_file:
         print('Saving unique equations ...')
