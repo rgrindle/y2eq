@@ -11,9 +11,6 @@ NOTES: 12 = start, 13 = stop
 
 TODO:
 """
-from eqlearner.dataset.utils import load_dataset
-
-
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignoree
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -21,7 +18,19 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 import os
 
 
-def train_model(model, x, y, batch_size, epochs,
+NUM_TOKENS = 22
+
+token2onehot = {0: np.zeros(NUM_TOKENS)}
+for i in range(1, 23):
+    vec = np.zeros(NUM_TOKENS)
+    vec[i-1] = 1.
+    token2onehot[i] = vec
+
+onehot2token = {tuple(value): key for key, value in token2onehot.items()}
+
+
+def train_model(model, x, y_input, y_target,
+                batch_size, epochs,
                 model_name):
     # encoder_inputs, decoder_targets = load_dataset(dataset_file)
     # encoder_inputs = encoder_inputs[:, :, None]
@@ -47,8 +56,6 @@ def train_model(model, x, y, batch_size, epochs,
 
     model.compile(optimizer='adam', loss='categorical_crossentropy')
     # NOTE: y gets padded inside model as input.
-    y_input = y[:, :-1, :]  # remove last token
-    y_target = y[:, 1:, :]  # remove START tokens
     history = model.fit([x, y_input], y_target,
                         batch_size=batch_size,
                         epochs=epochs,
@@ -57,7 +64,6 @@ def train_model(model, x, y, batch_size, epochs,
                         callbacks=[model_cb, weights_cb])
     pd.DataFrame(history.history).to_csv(os.path.join('models', model_name+'_history.csv'), header=False, index=False)
     return model
-
 
 # def get_decoder_inputs(decoder_targets):
 #     # get decoder inputs (use teacher forcing)
@@ -71,38 +77,51 @@ def train_model(model, x, y, batch_size, epochs,
 #     return decoder_inputs
 
 
-def eval_model(model):
-    # output = trained_model.predict([encoder_inputs, decoder_inputs])
-    # print(output.shape)
-    pass
+def load_dataset(path):
+    store_format = np.load(path, allow_pickle=True)
+    train_dataset, info_training, test_dataset, info_testing = store_format
+    assert info_training["isTraining"]
+    assert not info_testing["isTraining"]
+    return train_dataset, info_training, test_dataset, info_testing
+
+
+def load_and_format_dataset(datset_type, return_info=False):
+    assert datset_type in ('train', 'test')
+    if datset_type == 'train':
+        index = 0
+    else:
+        index = 2
+
+    print('reading dataset ...', end='', flush=True)
+    dataset, info = load_dataset(os.path.join('datasets', 'dataset.npy'))[index:index+2]
+    print('done.')
+    x_dataset = [xy[0] for xy in dataset]
+    y_dataset = [xy[1] for xy in dataset]
+    arr_x = np.array([np.array(x) for x in x_dataset])[:, :, None]
+    print('x shape', arr_x.shape)
+
+    arr_y = np.array([np.array(y) for y in y_dataset])[:, :, None]
+    onehot_y = np.array([[token2onehot[int(yi)] for yi in y] for y in arr_y])
+    print('y shape', onehot_y.shape)
+
+    y_input = onehot_y[:, :-1, :]  # remove last token
+    y_target = onehot_y[:, 1:, :]  # remove START token
+    if return_info:
+        return [arr_x, y_input], y_target, info
+    else:
+        return [arr_x, y_input], y_target
 
 
 if __name__ == '__main__':
     from architecture.seq2seq_cnn_attention import model
     # from eqlearner.dataset.processing import tokenization
 
-    NUM_TOKENS = 22
-
-    token2onehot = {0: np.zeros(NUM_TOKENS)}
-    for i in range(1, 23):
-        vec = np.zeros(NUM_TOKENS)
-        vec[i-1] = 1.
-        token2onehot[i] = vec
-
-    dataset_train = load_dataset(os.path.join('datasets', 'dataset_train_and_test.npy'))[0]
-    x_dataset_train = [xy[0] for xy in dataset_train]
-    y_dataset_train = [xy[1] for xy in dataset_train]
-    arr_x = np.array([np.array(x) for x in x_dataset_train])[:, :, None]
-    print('x shape', arr_x.shape)
-
-    arr_y = np.array([np.array(y) for y in y_dataset_train])[:, :, None]
-    onehot_y = np.array([[token2onehot[int(yi)] for yi in y] for y in arr_y])
-    print('y shape', onehot_y.shape)
+    x, y = load_and_format_dataset('train')
 
     # dataset_file = 'dataset_maxdepth3_seed0_train.json'
-    trained_model = train_model(model, arr_x, onehot_y,
+    trained_model = train_model(model, x[0], x[1], y,
                                 batch_size=128,
-                                epochs=50,
+                                epochs=100,
                                 model_name='seq2seq_cnn_attention_model')
     # result = eval_model(trained_model)
     # print(result)
