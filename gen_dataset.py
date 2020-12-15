@@ -16,11 +16,21 @@ TODO:
 """
 from datasetcreator_rg import DatasetCreatorRG
 
-# from eqlearner.dataset.processing import tokenization
-from eqlearner.dataset.utils import save_dataset
-
 import sympy
 import numpy as np
+
+
+def save_dataset(train_dataset=None, info_training=None,
+                 test_dataset=None, info_testing=None,
+                 path="data/dataset"):
+    assert info_training["isTraining"]
+    assert not info_testing["isTraining"]
+    store_format = np.array((train_dataset,
+                             info_training,
+                             test_dataset,
+                             info_testing), dtype="object")
+    np.save(path, store_format)
+
 
 x = sympy.Symbol('x')
 basis_functions = [x, sympy.sin, sympy.log, sympy.exp]
