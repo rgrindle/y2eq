@@ -16,14 +16,14 @@ NOTES: Not sure on some details like CONSISTENT_SIZE,
 TODO:
 """
 
-from architecture.custom_layers import GLU, Attention, PositionalEncoding
+from srvgd.architecture.custom_layers import GLU, Attention, PositionalEncoding
 
 from tensorflow import keras
 from tensorflow.keras.layers import Dense, Input, Conv1D, ZeroPadding1D, Add
 
 INPUT_LENGTH = 1
 NUM_OUTPUT_TOKENS = DICTIONARY_LENGTH = 22
-MAX_OUTPUT_LENGTH = 95
+MAX_OUTPUT_LENGTH = 97
 CONSISTENT_SIZE = 100
 
 enc_inputs = Input(shape=((30, 1)), name='enc_input')

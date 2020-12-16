@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 14, 2020
+LAST MODIFIED: Dec 15, 2020
 
 PURPOSE: Reimplementation of architecture found in
 
@@ -19,7 +19,7 @@ NOTES: Not sure on some details like CONSISTENT_SIZE,
 TODO:
 """
 
-from custom_layers import GLU, Attention, PositionalEncoding
+from srvgd.architecture.custom_layers import GLU, Attention, PositionalEncoding
 
 import numpy as np
 from tensorflow import keras
@@ -66,11 +66,9 @@ while len(all_outputs) < MAX_OUTPUT_LENGTH:
     context = context_layer([enc_outputs, dec_glu_dense_outputs, enc_residual])
     dec_residual = dec_residual_layer([context, dec_glu_dense_outputs])
     dec_outputs = dec_outputs_layer(dec_residual)
-    print(dec_outputs.shape)
 
     all_outputs.append(dec_outputs)
     dec_inputs_padded = concatenate([dec_inputs_padded, dec_outputs], axis=1)[:, -3:]
-    print('new input shape', dec_inputs_padded.shape)
 
 model = keras.Model([enc_inputs, dec_inputs],
                     all_outputs)
