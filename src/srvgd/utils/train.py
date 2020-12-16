@@ -31,7 +31,7 @@ onehot2token = {tuple(value): key for key, value in token2onehot.items()}
 
 def train_model(model, x, y_input, y_target,
                 batch_size, epochs,
-                model_name):
+                model_name, checkpoint=False):
     # encoder_inputs, decoder_targets = load_dataset(dataset_file)
     # encoder_inputs = encoder_inputs[:, :, None]
     # print(encoder_inputs.shape, decoder_targets.shape)
@@ -46,15 +46,16 @@ def train_model(model, x, y_input, y_target,
     # print('max?', np.max(encoder_inputs), np.max(decoder_targets))
 
     model_cb = ModelCheckpoint(save_best_only=True,
-                               filepath=os.path.join('models', 'model_'+model_name),
+                               filepath=os.path.join('..', '..', '..', 'models', 'model_'+model_name),
                                monitor='val_loss')
 
     weights_cb = ModelCheckpoint(save_best_only=True,
                                  save_weights_only=True,
-                                 filepath=os.path.join('models', 'weights_'+model_name),
+                                 filepath=os.path.join('..', '..', '..', 'models', 'weights_'+model_name),
                                  monitor='val_loss')
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy')
+    if not checkpoint:
+        model.compile(optimizer='adam', loss='categorical_crossentropy')
     # NOTE: y gets padded inside model as input.
     history = model.fit([x, y_input], y_target,
                         batch_size=batch_size,
@@ -62,7 +63,14 @@ def train_model(model, x, y_input, y_target,
                         validation_split=0.2,
                         shuffle=True,
                         callbacks=[model_cb, weights_cb])
-    pd.DataFrame(history.history).to_csv(os.path.join('models', model_name+'_history.csv'), header=False, index=False)
+
+    history_file = os.path.join('models', model_name+'_history.csv')
+    if checkpoint:
+        df = pd.read_csv(history_file)
+        history_data = np.vstack((df.values, list(history.history.values())))
+    else:
+        history_data = history.history
+    pd.DataFrame(history_data).to_csv(history_file, header=False, index=False)
     return model
 
 # def get_decoder_inputs(decoder_targets):
@@ -93,7 +101,7 @@ def load_and_format_dataset(datset_type, return_info=False):
         index = 2
 
     print('reading dataset ...', end='', flush=True)
-    dataset, info = load_dataset(os.path.join('datasets', 'dataset.npy'))[index:index+2]
+    dataset, info = load_dataset(os.path.join('..', '..', '..', 'datasets', 'dataset.npy'))[index:index+2]
     print('done.')
     x_dataset = [xy[0] for xy in dataset]
     y_dataset = [xy[1] for xy in dataset]
@@ -113,15 +121,21 @@ def load_and_format_dataset(datset_type, return_info=False):
 
 
 if __name__ == '__main__':
-    from architecture.seq2seq_cnn_attention import model
-    # from eqlearner.dataset.processing import tokenization
+    from tensorflow import keras
+    checkpoint = True
+    if checkpoint:
+        model = keras.models.load_model(os.path.join('..', '..', '..', 'models', 'model_seq2seq_cnn_attention_model'))
+
+    else:
+        from srvgd.architecture.seq2seq_cnn_attention import model
 
     x, y = load_and_format_dataset('train')
 
     # dataset_file = 'dataset_maxdepth3_seed0_train.json'
     trained_model = train_model(model, x[0], x[1], y,
                                 batch_size=128,
-                                epochs=100,
-                                model_name='seq2seq_cnn_attention_model')
+                                epochs=200,
+                                model_name='seq2seq_cnn_attention_model',
+                                checkpoint=checkpoint)
     # result = eval_model(trained_model)
     # print(result)
