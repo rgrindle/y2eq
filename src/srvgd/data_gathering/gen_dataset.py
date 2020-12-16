@@ -55,5 +55,5 @@ print('done.')
 
 print('Saving datasets ... ', end='', flush=True)
 save_dataset(train_dataset, info_training,
-             test_dataset, info_testing, path="datasets/dataset.npy")
+             test_dataset, info_testing, path="../../../../datasets/dataset.npy")
 print('done.')
