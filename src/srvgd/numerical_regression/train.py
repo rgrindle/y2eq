@@ -1,14 +1,14 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 15, 2020
+LAST MODIFIED: Dec 16, 2020
 
 PURPOSE: Train a NN to do function approximation
          for a single function.
 
 NOTES:
 
-TODO:
+TODO: Separate plotting from training.
 """
 from architecture_1d import model
 
@@ -28,7 +28,7 @@ def train(model, dataset, batch_size, epochs):
                                  filepath=os.path.join('models', 'weights_'+model_name),
                                  monitor='val_loss')
 
-    model.compile(optimizer='adam', loss='mse')
+    model.compile(optimizer='Adam', loss='mse')
     # NOTE: y gets padded inside model as input.
     history = model.fit(dataset[0], dataset[1],
                         batch_size=batch_size,
@@ -57,31 +57,30 @@ if __name__ == '__main__':
             scale_ = 1./(max_data-min_data)
         return (data-min_data)*scale_, min_data, scale_
 
-    batch_size = 1
+    batch_size = 8
 
     # make a dataset
     np.random.seed(0)
     x = np.random.uniform(-1, 1, 300)
     f = lambda x: 3*x*np.sin(5*x)+7
     y_train, min_data, scale_ = normalize(f(x))
-    train_dataset = [x, y_train]
+    train_dataset = [x[:, None], y_train[:, None]]
     x_test = np.linspace(-1, 1, 30)
     y_test = normalize(f(x_test), min_data, scale_)[0]
-    test_dataset = [x_test, y_test]
-    print(test_dataset[1])
+    test_dataset = [x_test[:, None], y_test[:, None]]
 
     trained_model = train(model, train_dataset,
                           batch_size=batch_size,
-                          epochs=300)
+                          epochs=500)
 
     # result = trained_model.evaluate(*test_dataset)
     # print(result)
     y_train_pred = trained_model.predict(x)
     y_test_pred = trained_model.predict(x_test)
     plt.figure()
-    plt.plot(x, y_train_pred, '.', label='train')
-    plt.plot(x_test, y_test_pred, '.', label='test')
-    plt.plot(train_dataset[0], train_dataset[1], '-', label='actual')
+    plt.plot(train_dataset[0], train_dataset[1], '.', label='$(x_{train}, y_{train})$ no noise', color='C2')
+    plt.plot(x, y_train_pred, '.', label='$(x_{train}, NN(x_{train}))$', ms=3, color='C0')
+    plt.plot(x_test, y_test_pred, '.', label='$(x_{test}, NN(x_{test})$', ms=3, color='C1')
     plt.xlabel('$x$')
     plt.ylabel('$y$')
     plt.legend()

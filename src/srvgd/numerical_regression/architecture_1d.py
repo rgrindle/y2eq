@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 15, 2020
+LAST MODIFIED: Dec 16, 2020
 
 PURPOSE: The achitecture can be trained to
          approximate a function f: R -> R.
@@ -19,8 +19,8 @@ HIDDEN_LAYER_SIZE = 100
 
 inputs = Input(shape=(INPUT_DIMS,))
 hidden_outputs = Dense(HIDDEN_LAYER_SIZE, activation='relu')(inputs)
-# hidden_outputs = Dense(HIDDEN_LAYER_SIZE, activation='relu')(inputs)
-# hidden_outputs = Dense(HIDDEN_LAYER_SIZE, activation='relu')(inputs)
+hidden_outputs = Dense(HIDDEN_LAYER_SIZE, activation='relu')(hidden_outputs)
+hidden_outputs = Dense(HIDDEN_LAYER_SIZE, activation='relu')(hidden_outputs)
 outputs = Dense(1)(hidden_outputs)
 
 model = Model(inputs, outputs)
