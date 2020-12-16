@@ -9,9 +9,9 @@ NOTES:
 
 TODO:
 """
-from train import load_and_format_dataset, onehot2token
+from srvgd.utils.train import load_and_format_dataset, onehot2token
 from eqlearner.dataset.processing.tokenization import default_map, reverse_map
-from architecture.seq2seq_cnn_attention_test import model as test_model
+from srvgd.architecture.seq2seq_cnn_attention_test import model as test_model
 
 from scipy.optimize import minimize
 from sklearn.preprocessing import MinMaxScaler
@@ -71,23 +71,27 @@ def decode(output):
     return np.array(eq_str_list)
 
 
-def eval_eq(eq, support):
-    x = sympy.symbols('x')
-    f = sympy.lambdify(x, eval(eq))
-    return f(support)
+def get_f(eq):
+    for prim in ['sin', 'log', 'exp']:
+        eq = eq.replace(prim, 'np.'+prim)
+    if 'c[' in eq:
+        lambda_str_beg = 'lambda c, x:'
+    else:
+        lambda_str_beg = 'lambda x:'
+    f = eval(lambda_str_beg+eq)
+    return f
 
 
 def is_valid_eq(eq_list, support):
     mask = []
     for eq in eq_list:
         try:
-            x = sympy.symbols('x')
-            sympy.lambdify(x, eval(eq))
-            # Don't evaluate because consts=1
-            # might be wrong.
+            f = get_f(eq)
+            f(support)
             mask.append(True)
         except (SyntaxError, TypeError, AttributeError):
             mask.append(False)
+        print(eq, mask[-1])
     return np.array(mask)
 
 
@@ -101,7 +105,7 @@ def eval_model(model, inputs, support):
 
 
 def load_model(model_name):
-    return keras.models.load_model(os.path.join('models', 'model_'+model_name))
+    return keras.models.load_model(os.path.join('..', '..', '..', 'models', 'model_'+model_name))
     # trained_model = keras.models.load_model(os.path.join('models', 'model_'+model_name))
     # test_model.set_weights(trained_model.get_weights())
     # return test_model
@@ -130,8 +134,6 @@ def apply_coeffs(eq):
             c_eq_str_list.append('c[{}]*'.format(coeff_index)+term)
             coeff_index += 1
     c_eq = '+'.join(c_eq_str_list)
-    for prim in ['sin', 'log', 'exp']:
-        c_eq = c_eq.replace(prim, 'np.'+prim)
     return c_eq, coeff_index
 
 
@@ -144,9 +146,11 @@ def fit_eq(eq_list, support, y_list):
     coeff_list = []
     rmse_list = []
     for eq, y in zip(eq_list, y_list):
+        print('eq', eq)
         eq_c, num_coeffs = apply_coeffs(eq)
-        print(eq_c)
-        f_hat = eval('lambda c, x:'+eq_c)
+        print('eq_c', eq_c)
+        print()
+        f_hat = get_f(eq_c)
         loss = lambda c, x: RMSE(f_hat(c, x.T), y)
         x0 = np.ones(num_coeffs)
         soln = minimize(loss, x0, args=(support[:, None],), method='BFGS')
@@ -174,6 +178,7 @@ if __name__ == '__main__':
     scaler.scale_ = info['scale_']
     unscaled_x = scaler.inverse_transform(x[0][:, :, 0])
 
+    print(decoded_output[mask] == sum(mask))
     _, rmse_list = fit_eq(decoded_output[mask],
                           np.array(info['Support']),
                           unscaled_x[mask])
