@@ -10,6 +10,7 @@ NOTES:
 
 TODO:
 """
+from srvgd.utils.normalize import normalize, get_normalization_params
 
 from eqlearner.dataset.univariate.datasetcreator import DatasetCreator
 from eqlearner.dataset.processing import tokenization, tensordataset
@@ -32,7 +33,11 @@ class DatasetCreatorRG(DatasetCreator):
         except KeyError:    # ComplexInfinity
             return np.array([np.nan])
 
-    def generate_set(self, support, num_equations, isTraining = True, threshold = 2000):
+    def generate_set(self, support, num_equations,
+                     isTraining=True, threshold=2000,
+                     multiple_scaling=False,
+                     consistent_scaling=False):
+        assert not (multiple_scaling and consistent_scaling)
         if isTraining:
             self.x_data = {}
             self.y_data = {}
@@ -48,7 +53,7 @@ class DatasetCreatorRG(DatasetCreator):
         while cond:
             numerical, dictionary, real_dict = self.generate_batch(support, 1, return_real_dict=True)
             n = list(numerical[0][1])
-            condition = np.max(numerical[0][1])<threshold and np.min(numerical[0][1])>-threshold
+            condition = np.max(numerical[0][1]) < threshold and np.min(numerical[0][1]) > -threshold
             if condition:
                 sub_condition = n not in self.x_data['train']
                 if not isTraining:
@@ -56,7 +61,7 @@ class DatasetCreatorRG(DatasetCreator):
                 if sub_condition:
                     self.x_data[dataset_type].append(n)
                     self.y_data[dataset_type].append(torch.Tensor((tokenization.pipeline(dictionary)[0])))
-                    eq_with_consts.append(real_dict)
+                    eq_with_consts.append(self.assembly_fun(real_dict[0])[0])
                     cnt += 1
                     print('.', end='', flush=True)
                 else:
@@ -65,20 +70,33 @@ class DatasetCreatorRG(DatasetCreator):
                 skipped += 1
             if cnt == num_equations:
                 cond = False
-        if isTraining:
-            self.scaler.fit(self.x_data['train'])
-        self.x_data[dataset_type] = self.scaler.transform(self.x_data[dataset_type])
+        if multiple_scaling:
+            if isTraining:
+                self.scaler.fit(self.x_data['train'])
+            self.x_data[dataset_type] = self.scaler.transform(self.x_data[dataset_type])
+        elif consistent_scaling:
+            if isTraining:
+                self.min_, self.scale_ = get_normalization_params(self.x_data['train'])
+            self.x_data[dataset_type] = normalize(self.x_data[dataset_type], self.min_, self.scale_)
         l = [len(y) for y in self.y_data[dataset_type]]
         q = np.max(l)
-        y_p = torch.zeros(len(self.y_data[dataset_type]),q)
+        y_p = torch.zeros(len(self.y_data[dataset_type]), q)
         for i, y in enumerate(self.y_data[dataset_type]):
-            y_p[i, :] = torch.cat([y,torch.zeros(q-y.shape[0])])
-        dataset = tensordataset.TensorDataset(torch.Tensor(self.x_data[dataset_type]), y_p.long(), eq_with_consts)
+            y_p[i, :] = torch.cat([y, torch.zeros(q-y.shape[0])])
+        dataset = tensordataset.TensorDataset(torch.Tensor(self.x_data[dataset_type]), y_p.long())
+
         info = self.get_info()
-        info["isTraining"] = isTraining
-        info["num_equations"] = num_equations
-        info["threshold"] = threshold
-        info["Support"] = support
-        info['min_'] = self.scaler.min_
-        info['scale_'] = self.scaler.scale_
-        return dataset, info
+        info['isTraining'] = isTraining
+        info['num_equations'] = num_equations
+        info['threshold'] = threshold
+        info['Support'] = support
+        if multiple_scaling:
+            info['min_'] = self.scaler.min_
+            info['scale_'] = self.scaler.scale_
+        elif consistent_scaling:
+            info['min_'] = self.min_
+            info['scale_'] = self.scale_
+        else:
+            info['min_'] = None
+            info['scale_'] = None
+        return dataset, info, eq_with_consts
