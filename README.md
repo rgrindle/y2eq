@@ -5,7 +5,7 @@ This code constructs a dataset, constructs a neural network, trains that neural 
 ## Getting started
 I am running this code on Python 3.7.4 with the following dependencies.
 
-numpy, pandas, tensorflow==2.3.1, sympy==1.6.2, scipy==1.4.1 TODO: add version numbers
+numpy==1.17.1, pandas, tensorflow==2.3.1, sympy==1.6.2, scipy==1.4.1 TODO: add version numbers
 
 Also using EQLearner to help generated the dataset. TODO: put link and maybe more explanation.
 
