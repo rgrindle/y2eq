@@ -39,7 +39,7 @@ def save(path, dataset, info, eq_with_coeff, dataset_type):
 if __name__ == '__main__':
     args, dataset_name = get_cmd_line_args_for_datasets()
 
-    x = sympy.Symbol('x')
+    x = sympy.Symbol('x', real=True)
     basis_functions = [x, sympy.sin, sympy.log, sympy.exp]
 
     fun_generator = DatasetCreatorRG(basis_functions,
