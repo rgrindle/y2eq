@@ -11,16 +11,16 @@ NOTES:
 
 TODO: Add save_dataset here. Am I really going to use that in multiple places?
 """
-from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH, NUM_TOKENS
+from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH, NUM_OUTPUT_TOKENS
 
 import numpy as np
 
 import os
 
 
-token2onehot = {0: np.zeros(NUM_TOKENS)}
+token2onehot = {0: np.zeros(NUM_OUTPUT_TOKENS)}
 for i in range(1, 23):
-    vec = np.zeros(NUM_TOKENS)
+    vec = np.zeros(NUM_OUTPUT_TOKENS)
     vec[i-1] = 1.
     token2onehot[i] = vec
 
@@ -48,10 +48,10 @@ def format_dataset(dataset):
     y_arr = np.array([np.array(y) for y in y_dataset])[:, :, None]
 
     # update padding if necessary
-    if y_arr.shape[1] > MAX_OUTPUT_LENGTH:
+    if y_arr.shape[1] > MAX_OUTPUT_LENGTH+1:
         print('There are equations that are too long for MAX_OUTPUT_LENGTH in chosen model.')
-    elif y_arr.shape[1] < MAX_OUTPUT_LENGTH:
-        temp = np.zeros((y_arr.shape[0], MAX_OUTPUT_LENGTH, y_arr.shape[2]))
+    elif y_arr.shape[1] < MAX_OUTPUT_LENGTH+1:
+        temp = np.zeros((y_arr.shape[0], MAX_OUTPUT_LENGTH+1, y_arr.shape[2]))
         temp[:, :y_arr.shape[1], :] = y_arr
         y_arr = temp
 

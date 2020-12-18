@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     support = np.linspace(0.1, 3.1, 30)
     print('Generating train dataset ... ', end='', flush=True)
-    train_data = fun_generator.generate_set(support, 50000,
+    train_data = fun_generator.generate_set(support, 500,
                                             isTraining=True,
                                             consistent_scaling=args.consistent_scaling,
                                             multiple_scaling=args.multiple_scaling)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     print('done.')
 
     print('Generating test dataset ... ', end='', flush=True)
-    test_data = fun_generator.generate_set(support, 1000,
+    test_data = fun_generator.generate_set(support, 10,
                                            isTraining=False,
                                            consistent_scaling=args.consistent_scaling,
                                            multiple_scaling=args.multiple_scaling)
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     print('done.')
 
     print('Saving datasets ... ', end='', flush=True)
-    path = os.path.join('..', '..', '..', 'datasets', 'dataset_'+dataset_name)
+    path = os.path.join('..', '..', '..', 'datasets', dataset_name)
     save(path, train_dataset, info_training, train_eq_with_coeff, 'train')
     save(path, test_dataset, info_testing, test_eq_with_coeff, 'test')
     print('done.')

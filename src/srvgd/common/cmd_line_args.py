@@ -37,4 +37,4 @@ def get_cmd_line_args_for_datasets():
     else:
         dataset_name = 'no_scaling'
 
-    return args, dataset_name
+    return args, 'dataset_'+dataset_name
