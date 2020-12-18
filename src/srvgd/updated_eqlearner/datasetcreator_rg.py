@@ -33,6 +33,26 @@ class DatasetCreatorRG(DatasetCreator):
         except KeyError:    # ComplexInfinity
             return np.array([np.nan])
 
+    def generate_batch(self,X, number_to_generate, X_noise=0, Y_noise=0, return_real_dict=False):
+        """Generate batch ready for being deployed in the network
+        Output is a np.array with X and y concatenated"""
+        input_network = []
+        output_network = []
+        real_dict = []
+        functions = []
+        i = 0
+        while i<number_to_generate:
+            fun, dictionary, dictionary_cleaned = self.generate_fun()
+            functions.append(fun)
+            i += 1
+            input_network.append(np.array([X, self.evaluate_function(X,fun, X_noise=X_noise, Y_noise=Y_noise)]))
+            output_network.append(dictionary_cleaned)
+            real_dict.append(dictionary)
+        if return_real_dict:
+            return input_network, output_network, functions, real_dict
+        else:
+            return input_network, output_network, functions
+
     def generate_set(self, support, num_equations,
                      isTraining=True, threshold=2000,
                      multiple_scaling=False,
@@ -51,17 +71,17 @@ class DatasetCreatorRG(DatasetCreator):
         skipped = 0
         cond = True
         while cond:
-            numerical, dictionary, real_dict = self.generate_batch(support, 1, return_real_dict=True)
+            numerical, dictionary, function, real_dict = self.generate_batch(support, 1, return_real_dict=True)
             n = list(numerical[0][1])
-            condition = np.max(numerical[0][1]) < threshold and np.min(numerical[0][1]) > -threshold
-            if condition:
+            # print(numerical[0])
+            if np.max(numerical[0][1]) < threshold and np.min(numerical[0][1]) > -threshold:
                 sub_condition = n not in self.x_data['train']
                 if not isTraining:
                     sub_condition = sub_condition and n not in self.x_data['test']
                 if sub_condition:
                     self.x_data[dataset_type].append(n)
                     self.y_data[dataset_type].append(torch.Tensor((tokenization.pipeline(dictionary)[0])))
-                    eq_with_consts.append(self.assembly_fun(real_dict[0])[0])
+                    eq_with_consts.append(function[0])
                     cnt += 1
                     print('.', end='', flush=True)
                 else:

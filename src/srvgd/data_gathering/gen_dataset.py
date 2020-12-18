@@ -18,6 +18,7 @@ from srvgd.updated_eqlearner.datasetcreator_rg import DatasetCreatorRG
 
 import sympy
 import numpy as np
+import pandas as pd
 
 import os
 
@@ -30,7 +31,8 @@ def save(path, dataset, info, eq_with_coeff, dataset_type):
         assert not info['isTraining']
     store_format = np.array((dataset, info), dtype='object')
     np.save(path+'_{}'.format(dataset_type), store_format)
-    np.save(path+'_{}_with_coeffs'.format(dataset_type), eq_with_coeff)
+    pd.DataFrame(eq_with_coeff).to_csv(path+'_{}_with_coeffs.csv'.format(dataset_type),
+                                       index=False, header=None)
 
 
 if __name__ == '__main__':
