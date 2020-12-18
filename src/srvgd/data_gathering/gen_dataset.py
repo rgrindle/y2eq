@@ -15,6 +15,7 @@ NOTES: Uses their code:
 TODO:
 """
 from srvgd.updated_eqlearner.datasetcreator_rg import DatasetCreatorRG
+from srvgd.common.cmd_line_args import get_cmd_line_args_for_datasets
 
 import sympy
 import numpy as np
@@ -36,30 +37,7 @@ def save(path, dataset, info, eq_with_coeff, dataset_type):
 
 
 if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--multiple_scaling', action='store_true',
-                        help='Scale each y-value with all y-values that '
-                             'share the same x-value. Thus, y-values '
-                             'at different x-values may scale differently.'
-                             'If both multiple_scaling and consistent_scaling '
-                             'are false, no scaling is performed.')
-    parser.add_argument('--consistent_scaling', action='store_true',
-                        help='Scale each y-value with the same scale. If both '
-                             'multiple_scaling and consistent_scaling are false, '
-                             'no scaling is performed.')
-
-    args = parser.parse_args()
-    assert not (args.multiple_scaling and args.consistent_scaling), 'cannot use --multiple_scaling and --consistent_scaling simultaneously'
-
-    # get dataset_name from args
-    if args.multiple_scaling:
-        dataset_name = 'multiple_scaling'
-    elif args.consistent_scaling:
-        dataset_name = 'consistent_scaling'
-    else:
-        dataset_name = 'no_scaling'
+    args, dataset_name = get_cmd_line_args_for_datasets()
 
     x = sympy.Symbol('x')
     basis_functions = [x, sympy.sin, sympy.log, sympy.exp]
