@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 13, 2020
+LAST MODIFIED: Dec 17, 2020
 
 PURPOSE: Train neural networks based on achitectures
          in the architecture folder and datasets generated
@@ -14,6 +14,7 @@ TODO:
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignoree
 from tensorflow.keras.callbacks import ModelCheckpoint
+from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 
 import os
 
@@ -32,19 +33,6 @@ onehot2token = {tuple(value): key for key, value in token2onehot.items()}
 def train_model(model, x, y_input, y_target,
                 batch_size, epochs,
                 model_name, checkpoint=False):
-    # encoder_inputs, decoder_targets = load_dataset(dataset_file)
-    # encoder_inputs = encoder_inputs[:, :, None]
-    # print(encoder_inputs.shape, decoder_targets.shape)
-
-    # indices = [i for i, x in enumerate(np.max(np.abs(encoder_inputs), axis=1)) if x < 1000]
-    # encoder_inputs = encoder_inputs[indices]
-    # decoder_targets = decoder_targets[indices]
-    # decoder_inputs = get_decoder_inputs(decoder_targets)
-    # print(encoder_inputs.shape, decoder_targets.shape)
-    # print('nans?', np.any(np.isnan(encoder_inputs)), np.any(np.isnan(decoder_targets)))
-    # print('infs?', np.any(np.isinf(encoder_inputs)), np.any(np.isinf(decoder_targets)))
-    # print('max?', np.max(encoder_inputs), np.max(decoder_targets))
-
     model_cb = ModelCheckpoint(save_best_only=True,
                                filepath=os.path.join('..', '..', '..', 'models', 'model_'+model_name),
                                monitor='val_loss')
@@ -73,24 +61,16 @@ def train_model(model, x, y_input, y_target,
     pd.DataFrame(history_data).to_csv(history_file, header=False, index=False)
     return model
 
-# def get_decoder_inputs(decoder_targets):
-#     # get decoder inputs (use teacher forcing)
-#     decoder_inputs = np.zeros_like(decoder_targets)
-#     print(decoder_inputs.shape, decoder_targets.shape)
 
-#     # put START token at the beginning and shift right
-#     # everything else by one.
-#     decoder_inputs[:, 0] = onehot_encoder.transform([['START']]).toarray()
-#     decoder_inputs[:, 1:] = decoder_targets[:, :-1]
-#     return decoder_inputs
-
-
-def load_dataset(path):
+def load_dataset(path, dataset_type):
     store_format = np.load(path, allow_pickle=True)
-    train_dataset, info_training, test_dataset, info_testing = store_format
-    assert info_training["isTraining"]
-    assert not info_testing["isTraining"]
-    return train_dataset, info_training, test_dataset, info_testing
+    dataset, info = store_format
+    assert dataset_type in ('train', 'test')
+    if dataset_type == 'train':
+        assert info["isTraining"]
+    else:
+        assert not info["isTraining"]
+    return dataset, info
 
 
 def load_and_format_dataset(datset_type, return_info=False):
@@ -101,14 +81,27 @@ def load_and_format_dataset(datset_type, return_info=False):
         index = 2
 
     print('reading dataset ...', end='', flush=True)
-    dataset, info = load_dataset(os.path.join('..', '..', '..', 'datasets', 'dataset.npy'))[index:index+2]
+    dataset, info = load_dataset(os.path.join('..', '..', '..', 'datasets', 'dataset_no_scaling_train.npy'), 'train')#[index:index+2]
     print('done.')
+
+    # get NN inputs
     x_dataset = [xy[0] for xy in dataset]
-    y_dataset = [xy[1] for xy in dataset]
     arr_x = np.array([np.array(x) for x in x_dataset])[:, :, None]
     print('x shape', arr_x.shape)
 
+    # get and then format NN outputs
+    y_dataset = [xy[1] for xy in dataset]
     arr_y = np.array([np.array(y) for y in y_dataset])[:, :, None]
+
+    # update padding if necessary
+    if arr_y.shape[1] > MAX_OUTPUT_LENGTH:
+        print('There are equations that are too long for MAX_OUTPUT_LENGTH in chosen model.')
+    elif arr_y.shape[1] < MAX_OUTPUT_LENGTH:
+        temp = np.zeros((arr_y.shape[0], MAX_OUTPUT_LENGTH, arr_y.shape[2]))
+        temp[:, :arr_y.shape[1], :] = arr_y
+        arr_y = temp
+
+    # now get onehot version of arr_y
     onehot_y = np.array([[token2onehot[int(yi)] for yi in y] for y in arr_y])
     print('y shape', onehot_y.shape)
 
@@ -131,11 +124,8 @@ if __name__ == '__main__':
 
     x, y = load_and_format_dataset('train')
 
-    # dataset_file = 'dataset_maxdepth3_seed0_train.json'
     trained_model = train_model(model, x[0], x[1], y,
                                 batch_size=128,
                                 epochs=200,
                                 model_name='seq2seq_cnn_attention_model',
                                 checkpoint=checkpoint)
-    # result = eval_model(trained_model)
-    # print(result)
