@@ -2,6 +2,7 @@ from evaluate import evaluate
 
 import torch
 import numpy as np
+import pandas as pd
 
 import time
 import math
@@ -12,6 +13,7 @@ def train(num_epochs, train_loader, valid_loader,
           clip, noise_Y=False, sigma=0.1):
     best_valid_loss = float('inf')
     torch.set_num_threads(1)
+    history = {'train_loss': [], 'valid_loss': []}
 
     for epoch in range(num_epochs):
 
@@ -20,6 +22,8 @@ def train(num_epochs, train_loader, valid_loader,
                            criterion, clip, noise_Y=False,
                            sigma=0.05)
         valid_loss = evaluate(model, valid_loader, criterion)
+        history['train_loss'].append(train_loss)
+        history['valid_loss'].append(valid_loss)
         end_time = time.time()
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
@@ -31,6 +35,7 @@ def train(num_epochs, train_loader, valid_loader,
         print(f'\tTrain Loss: {train_loss:.3f}) | Train PPL: {math.exp(train_loss):7.3f}')
         print(f'\t Val. Loss: {valid_loss:.3f}) |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
+    pd.DataFrame(history.values()).T.to_csv('train_history.csv', index=False, header=list(history.keys()))
     model.load_state_dict(torch.load('cnn.pt'))
     return model
 
@@ -41,7 +46,6 @@ def train_one_epoch(model, iterator, optimizer, criterion,
 
     epoch_loss = 0
     print('batch_size = ', len(iterator))
-#     print('size of each batch =', len(iterator[0]))
 
     for i, batch in enumerate(iterator):
         print('.', end='', flush=True)
