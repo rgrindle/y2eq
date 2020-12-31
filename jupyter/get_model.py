@@ -18,13 +18,13 @@ TRG_PAD_IDX = 0
 DEC_MAX_LENGTH = 67  # length of longest equation in terms of numbe of tokens
 
 
-def get_model(device, load_weights):
+def get_model(device, load_weights=None):
     enc = Encoder(INPUT_DIM, EMB_DIM, HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT, device)
     dec = Decoder(OUTPUT_DIM, EMB_DIM, HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device, max_length=DEC_MAX_LENGTH)
 
     model = Seq2Seq(enc, dec).to(device)
 
-    if load_weights:
-        model.load_state_dict(torch.load('cnn.pt'))
+    if load_weights is not None:
+        model.load_state_dict(torch.load(load_weights))
 
     return model
