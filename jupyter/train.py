@@ -18,9 +18,9 @@ def train(num_epochs, train_loader, valid_loader,
     for epoch in range(num_epochs):
 
         start_time = time.time()
-        train_loss = train(model, train_loader, optimizer,
-                           criterion, clip, noise_Y=False,
-                           sigma=0.05)
+        train_loss = train_one_epoch(model, train_loader, optimizer,
+                                     criterion, clip, noise_Y=False,
+                                     sigma=0.05)
         valid_loss = evaluate(model, valid_loader, criterion)
         history['train_loss'].append(train_loss)
         history['valid_loss'].append(valid_loss)

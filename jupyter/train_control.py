@@ -61,12 +61,12 @@ print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 
 train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=2000, valid_size=0.30)
 
-model = get_model(load_weights=False)
+model = get_model(device, load_weights=False)
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index=0)
-N_EPOCHS = 100
+N_EPOCHS = 1000
 CLIP = 1
 
 model = train(N_EPOCHS, train_loader, valid_loader,
