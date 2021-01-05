@@ -161,7 +161,7 @@ def apply_coeffs(eq):
             coeff_index += 1
     c_eq = '+'.join(c_eq_str_list)
 
-    # get any missed primitives.
+    # Put a coeff in front of any missed primitives.
     # Without this block sin(sin(x)) -> c[1]*sin(sin(c[0]*x))
     # but with this block sin(sin(x)) -> c[1]*sin(c[2]*sin(c[0]*x))
     for prim in ['sin', 'exp', 'log']:
@@ -183,6 +183,36 @@ def RMSE(y, y_hat):
     return np.sqrt(np.mean(np.power(y-y_hat, 2)))
 
 
+def regression(f_hat, y, num_coeffs, support):
+    def loss(c, x):
+        y_hat = f_hat(c, x)
+        return RMSE(normalize(y_hat), y)
+
+    bestever = cma.optimization_tools.BestSolution()
+    for popsize in [2, 10, 100, 500, 1000]:
+        es = cma.CMAEvolutionStrategy(np.ones(num_coeffs),
+                                      0.5,
+                                      {'popsize': popsize,
+                                       'verb_append': bestever.evalsall})
+
+        while not es.stop():
+            solutions = es.ask()
+            es.tell(solutions, [loss(c=s, x=support) for s in solutions])
+            es.disp()
+
+        bestever.update(es.best)
+
+        if bestever.f < 1e-8:  # global optimum was hit
+            break
+
+    return bestever.x, bestever.f
+
+
+def normalize(y):
+    min_ = np.min(y)
+    return (y-min_)/(np.max(y)-min_)
+
+
 def fit_eq(eq_list, support, y_list):
     x = sympy.symbols('x')  # noqa: F841
     coeff_list = []
@@ -191,30 +221,14 @@ def fit_eq(eq_list, support, y_list):
     for eq, y in zip(eq_list, y_list):
         print('eq', eq)
         eq_c, num_coeffs = apply_coeffs(eq)
-        # eq_c = 'c[0]*sin(c[1]*exp(3*x)+c[2]*exp(2*x)+c[3]*exp(x))'
-        # num_coeffs = 4
         print('eq_c', eq_c)
         print()
         f_hat = get_f(eq_c)
-        # loss = lambda c, x: RMSE(f_hat(c, x.T), y)
-        def normalize(y):
-            min_ = np.min(y)
-            return (y-min_)/(np.max(y)-min_)
-        def loss(c, x):
-            y_hat = f_hat(c, x)
-            return RMSE(normalize(y_hat), y)
-        es = cma.CMAEvolutionStrategy(np.ones(num_coeffs), 0.5)
-        while not es.stop():
-            solutions = es.ask()
-            es.tell(solutions, [loss(c=s, x=support) for s in solutions])
-            es.disp()
-        coeff_list.append(es.best.x)
-        rmse_list.append(es.best.f)
-        f_list.append(lambda x: normalize(f_hat(x=x, c=es.best.x)))
-        # import matplotlib.pyplot as plt
-        # plt.plot(support, f_hat(soln.x, support[:, None]))
-        # plt.plot(support, y, '.')
-        # plt.show()
+        coeffs, rmse = regression(f_hat, y, num_coeffs, support)
+        coeff_list.append(coeffs)
+        rmse_list.append(rmse)
+        f_list.append(lambda x: normalize(f_hat(x=x, c=coeffs)))
+
     return coeff_list, rmse_list, f_list
 
 
