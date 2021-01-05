@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 import time
-import math
 
 
 def train(num_epochs, train_loader, valid_loader,
@@ -32,8 +31,8 @@ def train(num_epochs, train_loader, valid_loader,
             torch.save(model.state_dict(), 'cnn.pt')
 
         print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
-        print(f'\tTrain Loss: {train_loss:.3f}) | Train PPL: {math.exp(train_loss):7.3f}')
-        print(f'\t Val. Loss: {valid_loss:.3f}) |  Val. PPL: {math.exp(valid_loss):7.3f}')
+        print(f'\tTrain Loss: {train_loss:.3f})')
+        print(f'\t Val. Loss: {valid_loss:.3f})')
 
     pd.DataFrame(history.values()).T.to_csv('train_history.csv', index=False, header=list(history.keys()))
     model.load_state_dict(torch.load('cnn.pt'))
@@ -64,15 +63,18 @@ def train_one_epoch(model, iterator, optimizer, criterion,
 
         output_dim = output.shape[-1]
         output = output.contiguous().view(-1, output_dim)
-        trg = trg[:, 1:].contiguous().view(-1)
+        # 1: removes start of sequence token
+        trg = trg[:, 1:].contiguous().view(-1)  # view = reshape
 
         # output = [batch size * trg len - 1, output dim]
         # trg = [batch size * trg len - 1]
+
         loss = criterion(output, trg)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
         optimizer.step()
         epoch_loss += loss.item()
+
     print('')
     return epoch_loss / len(iterator)
 
