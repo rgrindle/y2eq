@@ -1,3 +1,16 @@
+"""
+AUTHOR: Ryan Grindle
+
+LAST MODIFIED: Dec 18, 2020
+
+PURPOSE: Explore different methods for scaling y-values
+         (NN inputs).
+
+NOTES:
+
+TODO:
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,7 +19,7 @@ from sympy import sin, exp, log
 
 import os
 
-dataset_name = 'consistent_scaling_train'
+dataset_name = 'no_scaling_train'
 
 path = os.path.join('..', 'datasets')
 dataset, info = np.load(os.path.join(path, 'dataset_'+dataset_name+'.npy'), allow_pickle=True)
