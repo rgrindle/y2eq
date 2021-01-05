@@ -13,7 +13,6 @@ TODO:
 from train import train
 from evaluate import evaluate
 from get_model import get_model
-from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
 
 import torch
 import torch.nn as nn
@@ -21,6 +20,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np
+
+if torch.cuda.is_available():
+    from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
+else:
+    from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
 def dataset_loader(train_dataset, test_dataset, batch_size=1024, valid_size=0.20):
@@ -66,8 +70,8 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 
 optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index=0)
-N_EPOCHS = 2
-CLIP = 1
+N_EPOCHS = 100
+CLIP = 0.1
 
 model = train(N_EPOCHS, train_loader, valid_loader,
               model, optimizer, criterion,
@@ -75,4 +79,4 @@ model = train(N_EPOCHS, train_loader, valid_loader,
 
 test_loss = evaluate(model, test_loader, criterion)
 
-print(f'| Test Loss: {test_loss:.3f} | Test PPL: {np.exp(test_loss):7.3f} |')
+print(f'| Test Loss: {test_loss:.3f} |')
