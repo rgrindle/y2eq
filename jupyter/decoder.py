@@ -40,131 +40,108 @@ class Decoder(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-        self.relu = nn.ReLU()
+        # self.relu = nn.ReLU()
 
     def calculate_attention(self, embedded, conved, encoder_conved, encoder_combined):
-        
-        #embedded = [batch size, trg len, emb dim]
-        #conved = [batch size, hid dim, trg len]
-        #encoder_conved = encoder_combined = [batch size, src len, emb dim]
-        
-        #permute and convert back to emb dim
+        # embedded = [batch size, trg len, emb dim]
+        # conved = [batch size, hid dim, trg len]
+        # encoder_conved = encoder_combined = [batch size, src len, emb dim]
+
+        # permute and convert back to emb dim
         conved_emb = self.attn_hid2emb(conved.permute(0, 2, 1))
-        
-        #conved_emb = [batch size, trg len, emb dim]
-        
+        # conved_emb = [batch size, trg len, emb dim]
+
         combined = (conved_emb + embedded) * self.scale
-        
-        #combined = [batch size, trg len, emb dim]
-                
+        # combined = [batch size, trg len, emb dim]
+
         energy = torch.matmul(combined, encoder_conved.permute(0, 2, 1))
-        
-        #energy = [batch size, trg len, src len]
-        
+        # energy = [batch size, trg len, src len]
+
         attention = F.softmax(energy, dim=2)
-        
-        #attention = [batch size, trg len, src len]
-            
+        # attention = [batch size, trg len, src len]
+
         attended_encoding = torch.matmul(attention, encoder_combined)
-        
-        #attended_encoding = [batch size, trg len, emd dim]
-        
-        #convert from emb dim -> hid dim
+        # attended_encoding = [batch size, trg len, emd dim]
+
+        # convert from emb dim -> hid dim
         attended_encoding = self.attn_emb2hid(attended_encoding)
-        
-        #attended_encoding = [batch size, trg len, hid dim]
-        
-        #apply residual connection
+        # attended_encoding = [batch size, trg len, hid dim]
+
+        # apply residual connection
         attended_combined = (conved + attended_encoding.permute(0, 2, 1)) * self.scale
-        
-        #attended_combined = [batch size, hid dim, trg len]
-        
+        # attended_combined = [batch size, hid dim, trg len]
+
         return attention, attended_combined
-        
+
     def forward(self, trg, encoder_conved, encoder_combined):
-        
-        #trg = [batch size, trg len]
-        #encoder_conved = encoder_combined = [batch size, src len, emb dim]
-                
+        # trg = [batch size, trg len]
+        # encoder_conved = encoder_combined = [batch size, src len, emb dim]
         batch_size = trg.shape[0]
         trg_len = trg.shape[1]
-            
-        #create position tensor
+
+        # create position tensor
         pos = torch.arange(0, trg_len).unsqueeze(0).repeat(batch_size, 1).to(self.device)
-        
-        #pos = [batch size, trg len]
-        
-        #embed tokens and positions
+        # pos = [batch size, trg len]
+
+        # embed tokens and positions
         tok_embedded = self.tok_embedding(trg)
         pos_embedded = self.pos_embedding(pos)
-        
-        #tok_embedded = [batch size, trg len, emb dim]
-        #pos_embedded = [batch size, trg len, emb dim]
-        
-        #combine embeddings by elementwise summing
+        # tok_embedded = [batch size, trg len, emb dim]
+        # pos_embedded = [batch size, trg len, emb dim]
+
+        # combine embeddings by elementwise summing
         embedded = self.dropout(tok_embedded + pos_embedded)
-        
-        #embedded = [batch size, trg len, emb dim]
-        
-        #pass embedded through linear layer to go through emb dim -> hid dim
+        # embedded = [batch size, trg len, emb dim]
+
+        # pass embedded through linear layer to go through emb dim -> hid dim
         conv_input = self.emb2hid(embedded)
-        
-        #conv_input = [batch size, trg len, hid dim]
-        
-        #permute for convolutional layer
-        conv_input = conv_input.permute(0, 2, 1) 
-        
-        #conv_input = [batch size, hid dim, trg len]
-        
+        # conv_input = [batch size, trg len, hid dim]
+
+        # permute for convolutional layer
+        conv_input = conv_input.permute(0, 2, 1)
+        # conv_input = [batch size, hid dim, trg len]
+
         batch_size = conv_input.shape[0]
         hid_dim = conv_input.shape[1]
-        
+
         for i, conv in enumerate(self.convs):
-        
             # apply dropout
             conv_input = self.dropout(conv_input)
-        
+
             # need to pad so decoder can't "cheat"
             padding = torch.zeros(batch_size,
                                   hid_dim,
                                   self.kernel_size - 1).fill_(self.trg_pad_idx).to(self.device)
-                
+
             padded_conv_input = torch.cat((padding, conv_input), dim=2)
-        
             # padded_conv_input = [batch size, hid dim, trg len + kernel size - 1]
-        
+
             # pass through convolutional layer
             conved = conv(padded_conv_input)
-
             # conved = [batch size, 2 * hid dim, trg len]
-            
-            # pass through GLU activation function
-            conved = F.glu(conved, dim = 1)
 
+            # pass through GLU activation function
+            conved = F.glu(conved, dim=1)
             # conved = [batch size, hid dim, trg len]
-            
+
             # calculate attention
-            attention, conved = self.calculate_attention(embedded, 
-                                                         conved, 
-                                                         encoder_conved, 
+            attention, conved = self.calculate_attention(embedded,
+                                                         conved,
+                                                         encoder_conved,
                                                          encoder_combined)
-            
             # attention = [batch size, trg len, src len]
-            
+
             # apply residual connection
             conved = (conved + conv_input) * self.scale
-            
             # conved = [batch size, hid dim, trg len]
-            
+
             # set conv_input to conved for next loop iteration
             conv_input = conved
-            
+
         conved = self.hid2emb(conved.permute(0, 2, 1))
-         
         # conved = [batch size, trg len, emb dim]
-            
+
         output = self.fc_out((conved))
-        
         # output = [batch size, trg len, output dim]
-            
+
         return output, attention
