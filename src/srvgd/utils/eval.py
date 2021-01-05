@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 15, 2020
+LAST MODIFIED: Jan 4, 2020
 
 PURPOSE: Evaluate the model after training.
 
@@ -9,12 +9,11 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.train import load_and_format_dataset, onehot2token
 from eqlearner.dataset.processing.tokenization import default_map, reverse_map
-from srvgd.architecture.seq2seq_cnn_attention_test import model as test_model
+from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
+from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
 
-from scipy.optimize import minimize
-from sklearn.preprocessing import MinMaxScaler
+import cma
 from tensorflow import keras
 import numpy as np
 import sympy
@@ -112,7 +111,7 @@ def load_model(model_name):
 
 
 def pad(x):
-    x[1] = np.hstack((x[1], np.zeros((x[1].shape[0], 95-x[1].shape[1], x[1].shape[2]))))
+    x[1] = np.hstack((x[1], np.zeros((x[1].shape[0], MAX_OUTPUT_LENGTH-x[1].shape[1], x[1].shape[2]))))
 
 
 def apply_coeffs(eq):
@@ -145,41 +144,55 @@ def fit_eq(eq_list, support, y_list):
     x = sympy.symbols('x')  # noqa: F841
     coeff_list = []
     rmse_list = []
+    f_list = []
     for eq, y in zip(eq_list, y_list):
         print('eq', eq)
         eq_c, num_coeffs = apply_coeffs(eq)
+        eq_c = 'c[0]*sin(c[1]*exp(3*x)+c[2]*exp(2*x)+c[3]*exp(x))'
+        num_coeffs = 4
         print('eq_c', eq_c)
         print()
         f_hat = get_f(eq_c)
-        loss = lambda c, x: RMSE(f_hat(c, x.T), y)
-        x0 = np.ones(num_coeffs)
-        soln = minimize(loss, x0, args=(support[:, None],), method='BFGS')
-        coeff_list.append(soln.x)
-        rmse_list.append(soln.fun)
+        # loss = lambda c, x: RMSE(f_hat(c, x.T), y)
+        def normalize(y):
+            min_ = np.min(y)
+            return (y-min_)/(np.max(y)-min_)
+        def loss(c, x):
+            y_hat = f_hat(c, x)
+            return RMSE(normalize(y_hat), y)
+        es = cma.CMAEvolutionStrategy(np.ones(num_coeffs), 0.5)
+        while not es.stop():
+            solutions = es.ask()
+            es.tell(solutions, [loss(c=s, x=support) for s in solutions])
+            es.disp()
+        coeff_list.append(es.best.x)
+        rmse_list.append(es.bast.f)
+        f_list.append(lambda x: normalize(f_hat(x=x, c=es.best.x)))
         # import matplotlib.pyplot as plt
         # plt.plot(support, f_hat(soln.x, support[:, None]))
         # plt.plot(support, y, '.')
         # plt.show()
-    return coeff_list, rmse_list
+    return coeff_list, rmse_list, f_list
 
 
 if __name__ == '__main__':
     import pandas as pd
 
-    x, _, info = load_and_format_dataset(datset_type='test', return_info=True)
+    x, _, info = load_and_format_dataset('dataset_no_scaling', dataset_type='test', return_info=True)
     pad(x)  # depending on dataset max decoder lenght may vary
-    model = load_model('seq2seq_cnn_attention_model')
+    model = load_model('seq2seq_cnn_attention_model_dataset_no_scaling')
     decoded_output, mask = eval_model(model,
                                       inputs=x,
                                       support=np.array(info['Support']))
 
-    scaler = MinMaxScaler()
-    scaler.min_ = info['min_']
-    scaler.scale_ = info['scale_']
-    unscaled_x = scaler.inverse_transform(x[0][:, :, 0])
+    # scaler = MinMaxScaler()
+    # scaler.min_ = info['min_']
+    # scaler.scale_ = info['scale_']
+    # unscaled_x = scaler.inverse_transform(x[0][:, :, 0])
+    unscaled_x = x[0]
 
     print(decoded_output[mask] == sum(mask))
-    _, rmse_list = fit_eq(decoded_output[mask],
-                          np.array(info['Support']),
-                          unscaled_x[mask])
+    _, rmse_list, _ = fit_eq(decoded_output[mask],
+                             np.array(info['Support']),
+                             unscaled_x[mask])
     pd.DataFrame(rmse_list).to_csv('rmse_test.csv')
