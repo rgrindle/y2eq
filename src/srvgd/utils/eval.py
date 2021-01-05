@@ -14,6 +14,7 @@ from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
 
 import cma
+import re
 from tensorflow import keras
 import numpy as np
 import sympy
@@ -115,7 +116,32 @@ def pad(x):
 
 
 def apply_coeffs(eq):
+    """Take eq (str without coeffs although possibly
+    hard-coded ones) and put c[0], c[1], ... where
+    applicable.
+
+    Returns
+    -------
+    eq_c : str
+        equation str including adjustable coefficients.
+    num_coeff : int
+        The number of coefficients placed.
+
+    Examples
+    --------
+    >>> apply_coeffs('x')
+    ('c[0]*x', 1)
+
+    >>> apply_coeffs('sin(x)')
+    ('c[1]*sin(c[0]*x)', 2)
+
+    >>> apply_coeffs('sin(exp(x))')
+    ('c[1]*sin(c[2]*exp(c[0]*x))', 3)
+    """
     coeff_index = 0
+
+    # First, attach a coefficient to every occurance of x.
+    # Be careful to find the variable not the x in exp, for example.
     eq_str_list = []
     for i, e in enumerate(eq):
         if e == 'x' and (i == 0 or eq[i-1] != 'e'):
@@ -124,6 +150,7 @@ def apply_coeffs(eq):
         else:
             eq_str_list.append(e)
 
+    # Put a coefficient in front of every term.
     c_eq = ''.join(eq_str_list)
     c_eq_str_list = []
     for term in c_eq.split('+'):
@@ -133,6 +160,22 @@ def apply_coeffs(eq):
             c_eq_str_list.append('c[{}]*'.format(coeff_index)+term)
             coeff_index += 1
     c_eq = '+'.join(c_eq_str_list)
+
+    # get any missed primitives.
+    # Without this block sin(sin(x)) -> c[1]*sin(sin(c[0]*x))
+    # but with this block sin(sin(x)) -> c[1]*sin(c[2]*sin(c[0]*x))
+    for prim in ['sin', 'exp', 'log']:
+        c_eq_str_list = []
+        prev_i = 0
+        for m in re.finditer(prim, c_eq):
+            i = m.start()
+            c_eq_str_list.append(c_eq[prev_i:i])
+            if c_eq[i-2:i] != ']*':
+                c_eq_str_list.append('c[{}]*'.format(coeff_index))
+                coeff_index += 1
+            prev_i = i
+        c_eq_str_list.append(c_eq[prev_i:])
+        c_eq = ''.join(c_eq_str_list)
     return c_eq, coeff_index
 
 
@@ -148,8 +191,8 @@ def fit_eq(eq_list, support, y_list):
     for eq, y in zip(eq_list, y_list):
         print('eq', eq)
         eq_c, num_coeffs = apply_coeffs(eq)
-        eq_c = 'c[0]*sin(c[1]*exp(3*x)+c[2]*exp(2*x)+c[3]*exp(x))'
-        num_coeffs = 4
+        # eq_c = 'c[0]*sin(c[1]*exp(3*x)+c[2]*exp(2*x)+c[3]*exp(x))'
+        # num_coeffs = 4
         print('eq_c', eq_c)
         print()
         f_hat = get_f(eq_c)
@@ -166,7 +209,7 @@ def fit_eq(eq_list, support, y_list):
             es.tell(solutions, [loss(c=s, x=support) for s in solutions])
             es.disp()
         coeff_list.append(es.best.x)
-        rmse_list.append(es.bast.f)
+        rmse_list.append(es.best.f)
         f_list.append(lambda x: normalize(f_hat(x=x, c=es.best.x)))
         # import matplotlib.pyplot as plt
         # plt.plot(support, f_hat(soln.x, support[:, None]))
