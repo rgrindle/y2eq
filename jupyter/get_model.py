@@ -25,6 +25,6 @@ def get_model(device, load_weights=None):
     model = Seq2Seq(enc, dec).to(device)
 
     if load_weights is not None:
-        model.load_state_dict(torch.load(load_weights))
+        model.load_state_dict(torch.load(load_weights, map_location=device))
 
     return model
