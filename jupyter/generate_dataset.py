@@ -33,8 +33,8 @@ else:
     from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
-def get_dataset(dataset_size, save_loc=None,
-                save_name='_test'):
+def get_dataset(dataset_size, save_loc='',
+                save_name='_test', other_dataset=None):
     """Create and save dataset. File will be
     saved in directory save_loc with name
     'dataset'+save_name+'.pt'
@@ -45,8 +45,11 @@ def get_dataset(dataset_size, save_loc=None,
 
     And, the y-values will also be saved in save_loc
     as 'unscaled_yvalues'+save_name+'.csv'
+
+    other_dataset specifies a dataset that you want to
+    have no shared observations with.
     """
-    inputs, outputs, eq_list = get_dataset_data(dataset_size)
+    inputs, outputs, eq_list = get_dataset_data(dataset_size, other_dataset)
     inputs_scaled = scale(inputs)
     outputs_padded = pad(outputs)
 
@@ -56,7 +59,7 @@ def get_dataset(dataset_size, save_loc=None,
     return dataset
 
 
-def get_dataset_data(dataset_size):
+def get_dataset_data(dataset_size, other_dataset=None):
     """Generate unique equations and
     record some details. Equations that
     have y-values outsize of [-1000, 1000]
@@ -68,6 +71,10 @@ def get_dataset_data(dataset_size):
         The number of unique equations to create.
         This is the same as the number of observations
         in the final dataset.
+    other_dataset : TensorDataset (or None)
+        A dataset that you don't want to share
+        any observations with the dataset to be
+        created.
 
     Returns
     -------
@@ -83,6 +90,9 @@ def get_dataset_data(dataset_size):
         len(eq_list) = dataset_size. But equations
         are likely not the same size.
     """
+    if other_dataset is None:
+        other_dataset = []
+
     dataset_input = []
     dataset_output = []
     eq_list = []
@@ -92,13 +102,15 @@ def get_dataset_data(dataset_size):
         Y = DC.evaluate_function(support, eq, X_noise=False).tolist()
         if not np.any(np.isnan(Y)):
             if np.all(np.abs(Y) <= 1000):
-                if Y not in dataset_input:
+                if Y not in dataset_input and Y not in other_dataset:
                     dataset_input.append(Y)
                     tokenized_eq = tokenization.pipeline([dictionary_cleaned])[0]
                     dataset_output.append(torch.Tensor(tokenized_eq))
                     eq_list.append(eq)
+                    print('.', flush=True, end='')
                     count += 1
 
+    print()
     return dataset_input, dataset_output, eq_list
 
 
@@ -145,7 +157,8 @@ def save(dataset, unscaled_y_values, eq_list,
     if save_loc is None:
         return
 
-    os.makedirs(save_loc, exist_ok=True)
+    if save_loc != '':
+        os.makedirs(save_loc, exist_ok=True)
 
     # save unscaled y-values
     filename = os.path.join(save_loc, 'unscaled_yvalues'+save_name+'.csv')
@@ -176,4 +189,6 @@ if __name__ == '__main__':
                           constant_intervals_ext=[(-3, 1), (1, 3)],
                           constant_intervals_int=[(1, 3)])
 
-    dataset = get_dataset(dataset_size=5, save_loc='dataset_test')
+    dataset_train = get_dataset(dataset_size=50000, save_name='_train')
+    dataset_test = get_dataset(dataset_size=1000, save_name='_test',
+                               other_dataset=dataset_train)
