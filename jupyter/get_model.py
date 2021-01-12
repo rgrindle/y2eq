@@ -12,8 +12,8 @@ ENC_LAYERS = 10  # number of conv. blocks in encoder 10 original
 DEC_LAYERS = 10  # number of conv. blocks in decoder 10 original
 ENC_KERNEL_SIZE = 3  # must be odd!
 DEC_KERNEL_SIZE = 3  # can be even or odd
-ENC_DROPOUT = 0.25
-DEC_DROPOUT = 0.25
+ENC_DROPOUT = 0#0.25
+DEC_DROPOUT = 0#0.25
 TRG_PAD_IDX = 0
 DEC_MAX_LENGTH = 67  # length of longest equation in terms of numbe of tokens
 

@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Dec 30, 2020
+LAST MODIFIED: Jan 12, 2021
 
 PURPOSE: Script version of jupyter notebook of the same
          name.
@@ -25,6 +25,24 @@ if torch.cuda.is_available():
     from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
 else:
     from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
+
+import argparse
+import random
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--checkpoint', type=str,
+                    help='Provide name of model to continue training. '
+                         'Example: if you can cnn_model1.pt and optimizer_model1.pt '
+                         'use --checkpoint _model1 to continue training.')
+args = parser.parse_args()
+
+
+SEED = 1234
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed(SEED)
+torch.backends.cudnn.deterministic = True
 
 
 def dataset_loader(train_dataset, test_dataset, batch_size=1024, valid_size=0.20):
@@ -57,21 +75,35 @@ def count_parameters(model):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-train_data = torch.load('train_data_int_comp.pt')
-test_data = torch.load('test_data_int_comp.pt')
+# train_data = torch.load('train_data_int_comp.pt')
+train_data = torch.load('dataset_train.pt')
+# test_data = torch.load('test_data_int_comp.pt')
+test_data = torch.load('dataset_test.pt')
 
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 
 train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=2000, valid_size=0.30)
 
-model = get_model(device)
+if args.checkpoint is None:
+    model = get_model(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+
+else:
+    print('Loading partly (or previously) trained model...', flush=True, end='')
+    model = get_model(device, 'cnn{}.pt'.format(args.checkpoint))
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    optimizer.load_state_dict(torch.load('optimizer{}.pt'.format(args.checkpoint),
+                                         map_location=device))
+    print('done.')
+
+# scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
+
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
-optimizer = optim.Adam(model.parameters())
 criterion = nn.CrossEntropyLoss(ignore_index=0)
-N_EPOCHS = 100
-CLIP = 0.1
+N_EPOCHS = 330
+CLIP = 1
 
 model = train(N_EPOCHS, train_loader, valid_loader,
               model, optimizer, criterion,

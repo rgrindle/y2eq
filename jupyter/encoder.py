@@ -62,7 +62,7 @@ class Encoder(nn.Module):
         # conv_input = [batch size, src len, hid dim]
 
         # permute for convolutional layer
-        conv_input = conv_input.permute(0, 2, 1) 
+        conv_input = conv_input.permute(0, 2, 1)
         # conv_input = [batch size, hid dim, src len]
 
         # begin convolutional blocks...
