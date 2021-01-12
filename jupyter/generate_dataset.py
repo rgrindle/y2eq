@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 7, 2021
+LAST MODIFIED: Jan 11, 2021
 
 PURPOSE: Generate train dataset of 50000 observations where
          each observation is a symbolic regression problem/answer
@@ -17,11 +17,9 @@ import torch
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-import random
 from sympy import sin, log, exp, Symbol
 
 SEED = 1234
-random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
@@ -32,7 +30,7 @@ if torch.cuda.is_available():
 else:
     from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 
-dataset_size = 5
+dataset_size = 50
 
 scaler = MinMaxScaler()
 x = Symbol('x', real=True)
@@ -49,23 +47,6 @@ DC = DatasetCreatorRG(basis_functions,
                       constant_intervals_ext=[(-3, 1), (1, 3)],
                       constant_intervals_int=[(1, 3)])
 
-# for _ in range(3):
-fun, dictionary, dictionary_cleaned = DC.generate_fun()
-print(fun)
-
-random.seed(SEED)
-# np.random.seed(SEED)
-
-fun, dictionary, dictionary_cleaned = DC.generate_fun()
-print(fun)
-
-random.seed(SEED)
-# np.random.seed(SEED)
-
-fun, dictionary, dictionary_cleaned = DC.generate_fun()
-print(fun)
-exit()
-
 dataset_input = []
 dataset_output = []
 fun_list = []
@@ -73,7 +54,6 @@ count = 0
 cond = True
 while count < dataset_size:
     fun, dictionary, dictionary_cleaned = DC.generate_fun()
-    print(fun)
     if fun != 0:
         Y = DC.evaluate_function(support, fun, X_noise=False)
         # numeric = np.array([support, Y])

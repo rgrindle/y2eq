@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 7, 2021
+LAST MODIFIED: Jan 11, 2021
 
 PURPOSE: Remove use of set class, so that dataset
          generation is consist if consistent seed is used.
@@ -41,7 +41,7 @@ class EquationStructuresRG(EquationStructures):
     @staticmethod
     def polynomial_joiner(candidate, symbol, const_interval_ext=[(1, 1)], constant_interval_int=[(1, 1)]):
         """new random_from_intervals"""
-        res = candidate[0]*utils.random_from_intervals(const_interval_ext)
+        res = candidate[0]*random_from_intervals(const_interval_ext)
         candidate_pol = candidate[1:]
         for idx, elem in enumerate(candidate_pol, 1):
             if elem == 0:

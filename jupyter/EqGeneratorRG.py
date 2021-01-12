@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle (modified)
 
-LAST MODIFIED: Jan 7, 2021
+LAST MODIFIED: Jan 11, 2021
 
 PURPOSE: Remove use of set class, so that dataset
          generation is consist if consistent seed is used.
@@ -15,7 +15,7 @@ from EquationStructuresRG import EquationStructuresRG as EquationStructures
 
 import bisect
 import numpy as np
-from sympy.utilities.lambdify import lambdify
+# from sympy.utilities.lambdify import lambdify
 import sympy
 
 # import random
@@ -61,34 +61,34 @@ def N_single(basis_functions, fun_list, priority_list, n, begin=3):
     return fun_list, priority_list
 
 
-def Division_single(basis_functions,n):
-    """Changed from random to np.random"""
-    #We said that we are just creating a single instane of division. Hence priority not really necessary. 
-    candidate = np.random.choice(basis_functions)
-    numerator = []
-    denominator = []
-    while numerator == denominator:
-        numerator = []
-        denominator = []
-        poly = []
-        priority = []
-        for i in range(n):
-            numerator, priority =  N_single([candidate],numerator, priority,6,begin=0)
-            denominator, priority = N_single([candidate],denominator, priority, 6,begin=0)
-    symbolic_numerator = expression_creator({"numerator": numerator})
-    symbolic_denominator = expression_creator({"denominator": denominator})
-    division = symbolic_numerator/symbolic_denominator 
-    #logger.info("Create raw Division Term {}".format(str(division)))
-    division, priority = eliminate_infity_term(division, 999)
-    return [division], priority
+# def Division_single(basis_functions,n):
+#     """Changed from random to np.random"""
+#     #We said that we are just creating a single instane of division. Hence priority not really necessary. 
+#     candidate = np.random.choice(basis_functions)
+#     numerator = []
+#     denominator = []
+#     while numerator == denominator:
+#         numerator = []
+#         denominator = []
+#         poly = []
+#         priority = []
+#         for i in range(n):
+#             numerator, priority =  N_single([candidate],numerator, priority,6,begin=0)
+#             denominator, priority = N_single([candidate],denominator, priority, 6,begin=0)
+#     symbolic_numerator = expression_creator({"numerator": numerator})
+#     symbolic_denominator = expression_creator({"denominator": denominator})
+#     division = symbolic_numerator/symbolic_denominator 
+#     #logger.info("Create raw Division Term {}".format(str(division)))
+#     division, priority = eliminate_infity_term(division, 999)
+#     return [division], priority
 
 
-def eliminate_random_terms(expression,probability):
-    """Changed from random to np.random"""
-    for key in final_expression:
-        to_drop = np.random.randint(0,10) > probability*10
-        key.remove()
-    return final_expression
+# def eliminate_random_terms(expression,probability):
+#     """Changed from random to np.random"""
+#     for key in final_expression:
+#         to_drop = np.random.random_integers(0,10) > probability*10
+#         key.remove()
+#     return final_expression
 
 # -----------------------------------------
 # Modified functions - ABOVE
@@ -112,7 +112,7 @@ def basis_and_symbol_joiner(basis_function,symbol, constant_interval=[(1,1)]):
             raise(TypeError, "Basis functions must be func or symbol")
         else: 
             try:
-                c = utils.random_from_intervals(constant_interval)
+                c = random_from_intervals(constant_interval)
                 res = basis_function(symbol*c)
                 return res
             except:
@@ -163,18 +163,18 @@ def N_creator(basis_functions:list(),n,begin):
     return pr_basis
 
 
-def Composite_creator(path_to_composite,expr):
-    check_if_exist()
-    return Composite_creator
+# def Composite_creator(path_to_composite,expr):
+#     check_if_exist()
+#     return Composite_creator
 
-def Join_expression(*args):
-    total_coeff = sum([count_depth_dictionary([entry]) for entry in args])
-    coeffs = np.random.random_sample(len(total_coeff))
-    res = join_expression(args)
-    expression = 0
-    for idx ,curr_item in enumerate(myprint):
-        expression = coeffs[idx]*curr_item
-    return expression
+# def Join_expression(*args):
+#     total_coeff = sum([count_depth_dictionary([entry]) for entry in args])
+#     coeffs = np.random.random_sample(len(total_coeff))
+#     res = join_expression(args)
+#     expression = 0
+#     for idx ,curr_item in enumerate(myprint):
+#         expression = coeffs[idx]*curr_item
+#     return expression
 
 
 def Composition_single(tracker,expression: List,raw: List,symbol,constant_interval=[1,1]):
@@ -217,22 +217,22 @@ def expression_creator(one_dictionary):
 # def expression_joiner(*dictionaries):
 #     final_expression = {dictionaries}
 #     return final_expression
-def eliminate_infity_term(expression, priority_list):
-    if expression == zoo:
-        return 0, 0
-    else:
-        return expression, priority_list
+# def eliminate_infity_term(expression, priority_list):
+#     if expression == zoo:
+#         return 0, 0
+#     else:
+#         return expression, priority_list
 
 
-def function_evaluator(support,expression):
-    function = lambdify(x, result)
-    res_dictionary['GT_Symbolic'] = expression
-    res_dictionary['y'] = y
-    res_dictionary['coeff'] = coeff
-    res_dictionary['basis_fun'] = basis_functions
-    res_dictionary['x'] = support['support']
-    y = np.array([function(i) for i in support['support']])
-    return res_dictionary
+# def function_evaluator(support,expression):
+#     function = lambdify(x, result)
+#     res_dictionary['GT_Symbolic'] = expression
+#     res_dictionary['y'] = y
+#     res_dictionary['coeff'] = coeff
+#     res_dictionary['basis_fun'] = basis_functions
+#     res_dictionary['x'] = support['support']
+#     y = np.array([function(i) for i in support['support']])
+#     return res_dictionary
 
 
 def Noise_adder_y(dataset: dict, var = 1.0):
@@ -242,25 +242,25 @@ def Noise_adder_y(dataset: dict, var = 1.0):
     return dataset
 
 
-def Noise_adder_x(dataset: dict, var = 0.025):
-    dataset = copy.deepcopy(dataset)
-    for eq in dataset:
-        eq['x'] = eq['x'] + np.random.normal(scale=np.sqrt(var), size=len(eq['x']))
-        result = np.dot(eq['basis_fun'],eq['coeff'])
-        function = lambdify(x, result)
-        eq['y'] = np.array([function(i) for i in eq['x']])
-    return dataset
+# def Noise_adder_x(dataset: dict, var = 0.025):
+#     dataset = copy.deepcopy(dataset)
+#     for eq in dataset:
+#         eq['x'] = eq['x'] + np.random.normal(scale=np.sqrt(var), size=len(eq['x']))
+#         result = np.dot(eq['basis_fun'],eq['coeff'])
+#         function = lambdify(x, result)
+#         eq['y'] = np.array([function(i) for i in eq['x']])
+#     return dataset
 
 
-def count_depth_dictionary(d):
-    return sum([count(v)+1 if isinstance(v, dict) else 1 for v in d.values()])
+# def count_depth_dictionary(d):
+#     return sum([count(v)+1 if isinstance(v, dict) else 1 for v in d.values()])
 
 
-def entry_returner(d):
-    for k, v in d.items():
-        if isinstance(v, dict):
-            myprint(v)
-        yield ("{0} : {1}".format(k, v))
+# def entry_returner(d):
+#     for k, v in d.items():
+#         if isinstance(v, dict):
+#             myprint(v)
+#         yield ("{0} : {1}".format(k, v))
 
 
 def save_generated_data(data,dir = r"C:\Users\lbg\OneDrive - CSEM S.A\Bureau\Pytorch\NEW_EQ_LEARN\Data"):
@@ -268,3 +268,17 @@ def save_generated_data(data,dir = r"C:\Users\lbg\OneDrive - CSEM S.A\Bureau\Pyt
     #Save support points 
     path = os.path.join(dir,name_key)
     np.save(path,data)
+
+
+def random_from_intervals(intervals):   # intervals is a sequence of start,end tuples
+    """For some reason random.uniform was not behaving consistently
+    with random seed, so I changed it."""
+    total_size = sum(end-start for start, end in intervals)
+    n = np.random.uniform(0, total_size)
+    if total_size > 0:
+        for start, end in intervals:
+            if n < end-start:
+                return round(start + n, 3)
+            n -= end-start
+    else:
+        return 1
