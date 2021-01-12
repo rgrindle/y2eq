@@ -47,12 +47,31 @@ def get_x(f, a, b, tolerance):
         return np.unique(final_x)
 
 
+def is_enough_points(f, x, tolerance):
+    for i, _ in enumerate(x[:-1]):
+        a, b = x[i], x[i+1]
+        new_x = np.random.uniform(a, b, 3)
+        sub_x = [a, b]
+        y = f(np.array(sub_x))
+        y_pred = interpolate(np.array((sub_x, y)), new_x)
+        y_true = f(new_x)
+        error = np.sum(np.abs(y_true-y_pred))
+        if error > tolerance:
+            return False
+            break
+    else:
+        return True
+
+
 if __name__ == '__main__':
 
     np.random.seed(1234)
 
     f = lambda x: np.sin(0.0001*np.exp(3*x)+0.0001*np.exp(2*x)+np.exp(x))
-    x, y = get_points(f=f, a=0.1, b=3.1, tolerance=0.01)
+    is_enough = is_enough_points(f, np.arange(0.1, 3.1, 0.1), tolerance=0.1)
+    print(is_enough)
+
+    x, y = get_points(f=f, a=0.1, b=3.1, tolerance=0.1)
     print(len(x))
 
     plt.figure()
