@@ -76,9 +76,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 # train_data = torch.load('train_data_int_comp.pt')
-train_data = torch.load('dataset_train.pt')
+train_data = torch.load('dataset_train.pt', map_location=device)
 # test_data = torch.load('test_data_int_comp.pt')
-test_data = torch.load('dataset_test.pt')
+test_data = torch.load('dataset_test.pt', map_location=device)
+
 
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
