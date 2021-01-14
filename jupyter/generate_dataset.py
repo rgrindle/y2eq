@@ -16,7 +16,6 @@ from eqlearner.dataset.processing import tokenization
 import torch
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 from sympy import sin, log, exp, Symbol
 
 import os
@@ -43,19 +42,15 @@ def get_dataset(dataset_size, save_loc='',
     be saved in save_loc
     with the name 'equations_with_coeff'+save_name+'.csv'
 
-    And, the y-values will also be saved in save_loc
-    as 'unscaled_yvalues'+save_name+'.csv'
-
     other_dataset specifies a dataset that you want to
     have no shared observations with.
     """
     inputs, outputs, eq_list = get_dataset_data(dataset_size, other_dataset)
-    inputs_scaled = scale(inputs)
     outputs_padded = pad(outputs)
 
-    dataset = TensorDataset(inputs_scaled, outputs_padded.long())
+    dataset = TensorDataset(inputs, outputs_padded.long())
 
-    save(dataset, inputs, eq_list, save_loc, save_name)
+    save(dataset, eq_list, save_loc, save_name)
     return dataset
 
 
@@ -92,7 +87,7 @@ def get_dataset_data(dataset_size, other_dataset=None):
     """
     if other_dataset is None:
         other_dataset = []
-
+    prev =  None
     dataset_input = []
     dataset_output = []
     eq_list = []
@@ -101,35 +96,24 @@ def get_dataset_data(dataset_size, other_dataset=None):
         eq, dictionary, dictionary_cleaned = DC.generate_fun()
         Y = DC.evaluate_function(support, eq, X_noise=False).tolist()
         if not np.any(np.isnan(Y)):
-            if np.all(np.abs(Y) <= 1000):
-                if Y not in dataset_input and Y not in other_dataset:
-                    dataset_input.append(Y)
-                    tokenized_eq = tokenization.pipeline([dictionary_cleaned])[0]
-                    dataset_output.append(torch.Tensor(tokenized_eq))
-                    eq_list.append(eq)
-                    print('.', flush=True, end='')
-                    count += 1
+            if np.min(Y) != np.max(Y):
+                if np.all(np.abs(Y) <= 1000):
+                    normalized_Y = normalize(Y).tolist()
+                    if normalized_Y not in dataset_input and normalized_Y not in other_dataset:
+                        dataset_input.append(normalized_Y)
+                        tokenized_eq = tokenization.pipeline([dictionary_cleaned])[0]
+                        dataset_output.append(torch.Tensor(tokenized_eq))
+
+                        eq_list.append(str(eq))
+
+                        print('.', flush=True, end='')
+                        count += 1
 
     print()
-    return dataset_input, dataset_output, eq_list
-
-
-def scale(unscaled):
-    """scale unscaled into [0, 1] individually
-    for each equation
-
-    Parameters
-    ----------
-    unscaled : list
-        Data to be scaled. Each row is scaled individually.
-
-    Returns
-    -------
-    scaled : torch.Tensor
-        Scaled data. (unscaled.shape == scaled.shape)
-    """
-    scaled = MinMaxScaler().fit_transform(np.array(unscaled).T)
-    return torch.Tensor(scaled).T
+    inputs_tensor = torch.zeros(len(dataset_input), 30)
+    for i, y in enumerate(dataset_input):
+        inputs_tensor[i, :] = torch.Tensor(y)
+    return inputs_tensor, dataset_output, eq_list
 
 
 def pad(unpadded):
@@ -152,17 +136,13 @@ def pad(unpadded):
     return torch.Tensor(padded)
 
 
-def save(dataset, unscaled_y_values, eq_list,
+def save(dataset, eq_list,
          save_loc, save_name):
     if save_loc is None:
         return
 
     if save_loc != '':
         os.makedirs(save_loc, exist_ok=True)
-
-    # save unscaled y-values
-    filename = os.path.join(save_loc, 'unscaled_yvalues'+save_name+'.csv')
-    pd.DataFrame(unscaled_y_values).to_csv(filename, index=False, header=None)
 
     # save equations with coefficients
     filename = os.path.join(save_loc, 'equations_with_coeff'+save_name+'.csv')
@@ -171,6 +151,12 @@ def save(dataset, unscaled_y_values, eq_list,
     # save dataset
     filename = os.path.join(save_loc, 'dataset'+save_name+'.pt')
     torch.save(dataset, filename)
+
+
+def normalize(data):
+    _min = np.min(data)
+    _max = np.max(data)
+    return np.around((data-_min)/(_max-_min), 7)
 
 
 if __name__ == '__main__':
