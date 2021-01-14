@@ -11,7 +11,6 @@ NOTES:
 TODO:
 """
 import numpy as np
-import matplotlib.pyplot as plt
 
 import copy
 
@@ -64,6 +63,7 @@ def is_enough_points(f, x, tolerance):
 
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
 
     np.random.seed(1234)
 
