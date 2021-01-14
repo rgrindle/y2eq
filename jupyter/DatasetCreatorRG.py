@@ -16,7 +16,7 @@ from EquationTrackerRG import EquationTrackerRG as EquationTracker
 from EquationStructuresRG import EquationStructuresRG as EquationStructures
 from EqGeneratorRG import constant_adder_binomial, polynomial_single, Composition_single, Binomial_single, N_single
 import numpy as np
-
+from sympy import lambdify, sin, exp, log
 
 import copy
 
@@ -44,17 +44,17 @@ class DatasetCreatorRG(DatasetCreator):
                     y.append(np.nan)
         return y
 
-    # def evaluate_function(self, X, sym_function, X_noise=0, Y_noise=0):
-    #     """Difference is that ComplexInfinity issue is catch."""
-    #     x = self.symbol
-    #     try:
-    #         function = lambdify(x, sym_function)
-    #         # All the warnings are related to function not correctly evaluated. So we catch them and set a nan.
-    #         y = self.handling_nan_evaluation(X, function, X_noise=X_noise, Y_noise=Y_noise)
-    #         y = np.array(y)
-    #         return y
-    #     except KeyError:    # ComplexInfinity
-    #         return np.array([np.nan])
+    def evaluate_function(self, X, sym_function, X_noise=0, Y_noise=0):
+        """Difference is that ComplexInfinity issue is catch."""
+        x = self.symbol
+        try:
+            function = lambdify(x, sym_function)
+            # All the warnings are related to function not correctly evaluated. So we catch them and set a nan.
+            y = self.handling_nan_evaluation(X, function, X_noise=X_noise, Y_noise=Y_noise)
+            y = np.array(y)
+            return y
+        except KeyError:    # ComplexInfinity
+            return np.array([np.nan])
 
     def generate_fun(self):
         """Difference from original is removal of set
