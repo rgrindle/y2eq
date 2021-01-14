@@ -30,10 +30,11 @@ def train(num_epochs, train_loader, valid_loader,
         end_time = time.time()
         epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
-        if valid_loss < best_valid_loss:
+        if valid_loss <= best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), os.path.join(save_loc, 'cnn.pt'))
             torch.save(optimizer.state_dict(), os.path.join(save_loc, 'optimizer.pt'))
+            print('saving')
 
         print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
         print(f'\tTrain Loss: {train_loss:.3f})')
