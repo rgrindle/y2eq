@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 4, 2020
+LAST MODIFIED: Jan 15, 2021
 
 PURPOSE: Evaluate the model after training.
 
@@ -13,6 +13,7 @@ from eqlearner.dataset.processing.tokenization import default_map, reverse_map
 from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
 
+from scipy.optimize import minimize
 import cma
 import re
 from tensorflow import keras
@@ -183,29 +184,38 @@ def RMSE(y, y_hat):
     return np.sqrt(np.mean(np.power(y-y_hat, 2)))
 
 
+# def regression(f_hat, y, num_coeffs, support):
+#     def loss(c, x):
+#         y_hat = f_hat(c, x)
+#         return RMSE(normalize(y_hat), y)
+
+#     bestever = cma.optimization_tools.BestSolution()
+#     for popsize in [100]:
+#         es = cma.CMAEvolutionStrategy(np.ones(num_coeffs),
+#                                       0.5,
+#                                       {'popsize': popsize,
+#                                        'verb_append': bestever.evalsall})
+
+#         while not es.stop():
+#             solutions = es.ask()
+#             es.tell(solutions, [loss(c=s, x=support) for s in solutions])
+#             es.disp()
+
+#         bestever.update(es.best)
+
+#         if bestever.f < 1e-8:  # global optimum was hit
+#             break
+
+#     return bestever.x, bestever.f
+
+
 def regression(f_hat, y, num_coeffs, support):
     def loss(c, x):
         y_hat = f_hat(c, x)
         return RMSE(normalize(y_hat), y)
 
-    bestever = cma.optimization_tools.BestSolution()
-    for popsize in [2, 10, 100, 500, 1000]:
-        es = cma.CMAEvolutionStrategy(np.ones(num_coeffs),
-                                      0.5,
-                                      {'popsize': popsize,
-                                       'verb_append': bestever.evalsall})
-
-        while not es.stop():
-            solutions = es.ask()
-            es.tell(solutions, [loss(c=s, x=support) for s in solutions])
-            es.disp()
-
-        bestever.update(es.best)
-
-        if bestever.f < 1e-8:  # global optimum was hit
-            break
-
-    return bestever.x, bestever.f
+    res = minimize(loss, np.ones(num_coeffs), args=(support,), method='BFGS')
+    return res.x, res.fun
 
 
 def normalize(y):
