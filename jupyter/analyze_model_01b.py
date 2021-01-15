@@ -14,7 +14,7 @@ NOTES: Requires test_output.csv containing rows of numbers
 
 TODO:
 """
-from eqlearner.dataset.processing.tokenization import get_string
+from eqlearner.dataset.processing.tokenization import default_map, reverse_map
 
 import json
 import numpy as np
@@ -28,6 +28,22 @@ np.seterr('raise')
 file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
 data = pd.read_csv('test_output{}.csv'.format(file_endname)).values
 print(data.shape)
+
+
+def get_string(string, mapping=None, sym_mapping=None):
+    if not mapping:
+        tmp = default_map()
+        mapping = reverse_map(tmp, symbols=sym_mapping)
+    mapping_string = mapping.copy()
+    mapping_string[12] = "START"
+    mapping_string[13] = "END"
+    mapping_string[0] = ''
+    curr = "".join([mapping_string[digit] for digit in string])
+    # if len(string) < 2:
+    #     return RuntimeError
+    # if len(string) == 2:
+    #     return 0
+    return curr
 
 
 def is_eq_valid(eq_str):
@@ -49,10 +65,10 @@ x_numeric = np.arange(0.1, 3.1, 0.1)
 x = Symbol('x', real=True)
 for i, d in enumerate(data):
     for end in range(len(d), 0, -1):
-        eq_str = get_string(d).replace('END', '')
-        if is_eq_valid(eq_str[:end]):
-            print(eq_str[:end])
-            valid_equations[i] = eq_str[:end]
+        eq_str = str(get_string(d[:end])).replace('END', '')
+        if is_eq_valid(eq_str):
+            print(eq_str)
+            valid_equations[i] = eq_str
             valid += 1
             break
     else:
