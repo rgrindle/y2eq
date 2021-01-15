@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 5, 2020
+LAST MODIFIED: Jan 5, 2021
 
 PURPOSE: Count the number of valid and number of invalid equations.
 
@@ -21,7 +21,9 @@ from sympy import sin, exp, log, lambdify, Symbol
 
 np.seterr('raise')
 
-data = pd.read_csv('test_output.csv').values
+file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates'
+# file_endname = '_epochs100_0'
+data = pd.read_csv('test_output{}.csv'.format(file_endname)).values
 print(data.shape)
 
 # decode and get y-values
@@ -40,9 +42,13 @@ for i, d in enumerate(data):
         y_hat_values[i] = f(x_numeric)
         if type(y_hat_values[i]) == np.ufunc:
             del y_hat_values[i]
-        valid += 1
+            invalid += 1
+            print(eq_str)
+        else:
+            valid += 1
     except (sympy.SympifyError, TypeError, NameError, tokenize.TokenError, FloatingPointError) as e:
         invalid += 1
+        print(eq_str)
 
 print('valid', valid)
 print('invalid', invalid)
