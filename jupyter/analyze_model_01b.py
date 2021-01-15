@@ -31,8 +31,6 @@ print(data.shape)
 
 
 def is_eq_valid(eq_str):
-    if eq_str == 'e':
-        return False
     try:
         f = lambdify(x, eq_str)
         y_hat_values = f(x_numeric)
@@ -50,9 +48,8 @@ valid_equations = {}
 x_numeric = np.arange(0.1, 3.1, 0.1)
 x = Symbol('x', real=True)
 for i, d in enumerate(data):
-    eq_str = get_string(d).replace('END', '')
-    print(eq_str)
-    for end in range(len(eq_str), 0, -1):
+    for end in range(len(d), 0, -1):
+        eq_str = get_string(d).replace('END', '')
         if is_eq_valid(eq_str[:end]):
             print(eq_str[:end])
             valid_equations[i] = eq_str[:end]
