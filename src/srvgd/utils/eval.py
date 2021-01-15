@@ -75,6 +75,7 @@ def decode(output):
 def get_f(eq):
     for prim in ['sin', 'log', 'exp']:
         eq = eq.replace(prim, 'np.'+prim)
+    eq = eq.replace('E', 'np.e')
     if 'c[' in eq:
         lambda_str_beg = 'lambda c, x:'
     else:
