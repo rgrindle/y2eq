@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 6, 2020
+LAST MODIFIED: Jan 6, 2021
 
 PURPOSE: Get output of trained NN on test dataset.
 
@@ -20,7 +20,7 @@ import pandas as pd
 import itertools
 
 
-file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates'
+file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_count_padding'
 # file_endname = '_epochs100_0'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = get_model(device, 'cnn{}.pt'.format(file_endname))

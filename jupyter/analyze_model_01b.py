@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 15, 2021
+LAST MODIFIED: Jan 18, 2021
 
 PURPOSE: Count the number of valid and number of invalid equations.
          But, do it without considering STOP/END. Instead shorten
@@ -14,6 +14,7 @@ NOTES: Requires test_output.csv containing rows of numbers
 
 TODO:
 """
+from srvgd.utils.eval import is_eq_valid
 from eqlearner.dataset.processing.tokenization import default_map, reverse_map
 
 import json
@@ -46,17 +47,6 @@ def get_string(string, mapping=None, sym_mapping=None):
     return curr
 
 
-def is_eq_valid(eq_str):
-    try:
-        f = lambdify(x, eq_str)
-        y_hat_values = f(x_numeric)
-        return type(y_hat_values) != np.ufunc
-    except (sympy.SympifyError, TypeError, NameError, tokenize.TokenError, AttributeError, FloatingPointError) as e:
-        if str(e) == AttributeError:
-            print('AttributeError on', eq_str)
-        return False
-
-
 # decode and get y-values
 valid = 0
 invalid = 0
@@ -78,5 +68,5 @@ for i, d in enumerate(data):
 print('valid', valid)
 print('invalid', invalid)
 
-with open('valid_eq{}.json'.format(file_endname), 'w') as file:
+with open('01b_valid_eq{}.json'.format(file_endname), 'w') as file:
     json.dump(valid_equations, file)

@@ -81,10 +81,11 @@ def get_f(eq):
     else:
         lambda_str_beg = 'lambda x:'
     f = eval(lambda_str_beg+eq)
+    print(eq)
     return f
 
 
-def is_valid_eq(eq_list, support):
+def is_valid_eq_list(eq_list, support):
     mask = []
     for eq in eq_list:
         try:
@@ -100,7 +101,7 @@ def is_valid_eq(eq_list, support):
 def eval_model(model, inputs, support):
     output = model.predict(inputs)
     decoded_output = decode(output)
-    mask = is_valid_eq(decoded_output, support)
+    mask = is_valid_eq_list(decoded_output, support)
     num_invalid = len(mask)-sum(mask)
     print('Found {} invalid equations'.format(num_invalid))
     return decoded_output, mask
@@ -178,7 +179,10 @@ def apply_coeffs(eq):
             prev_i = i
         c_eq_str_list.append(c_eq[prev_i:])
         c_eq = ''.join(c_eq_str_list)
-    return c_eq, coeff_index
+
+    # Add verticle shift
+    c_eq += '+c[{}]'.format(coeff_index)
+    return c_eq, coeff_index+1
 
 
 def RMSE(y, y_hat):
@@ -212,16 +216,21 @@ def RMSE(y, y_hat):
 
 def regression(f_hat, y, num_coeffs, support):
     def loss(c, x):
-        y_hat = f_hat(c, x)
+        y_hat = f_hat(c, x).flatten()
         return RMSE(normalize(y_hat), y)
 
-    res = minimize(loss, np.ones(num_coeffs), args=(support,), method='BFGS')
+    res = minimize(loss, np.ones(num_coeffs), args=(support,), bounds=[(-3, 3)]*num_coeffs, method='L-BFGS-B')
     return res.x, res.fun
 
 
-def normalize(y):
-    min_ = np.min(y)
-    return (y-min_)/(np.max(y)-min_)
+def normalize(y, min_=None, scale=None, return_params=False):
+    if min_ is None:
+        min_ = np.min(y)
+        scale = 1./(np.max(y)-min_)
+    if return_params:
+        return (y-min_)*scale, min_, scale
+    else:
+        return (y-min_)*scale
 
 
 def fit_eq(eq_list, support, y_list):
@@ -238,9 +247,27 @@ def fit_eq(eq_list, support, y_list):
         coeffs, rmse = regression(f_hat, y, num_coeffs, support)
         coeff_list.append(coeffs)
         rmse_list.append(rmse)
-        f_list.append(lambda x: normalize(f_hat(x=x, c=coeffs)))
 
+        f_str = eq_c
+        for i in range(num_coeffs):
+            f_str = f_str.replace('c[{}]'.format(i), str(coeffs[i]))
+        f_hat_fixed_coeffs = get_f(f_str)
+        f_list.append(f_hat_fixed_coeffs)
+        # import matplotlib.pyplot as plt
+        # plt.plot(support, f_list[-1](support), '.-', label='pred')
+        # plt.plot(support, y, '.-', label='true')
+        # plt.legend()
+        # plt.show()
     return coeff_list, rmse_list, f_list
+
+
+def is_eq_valid(eq_str, x=np.arange(0.1, 3.1, 0.1)):
+    try:
+        f = get_f(eq_str)
+        y_hat_values = f(x)
+        return type(y_hat_values) != np.ufunc
+    except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
+        return False
 
 
 if __name__ == '__main__':

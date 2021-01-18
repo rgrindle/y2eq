@@ -1,89 +1,67 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MOFIFIED: Jan 5, 2020
+LAST MOFIFIED: Jan 18, 2021
 
-PURPOSE: Plot cdf of RMSE errors.
+PURPOSE: Get RMSE errors for CDF plot
 
-NOTES: Requires rmse_test.csv containing a single column
-       of RMSE values.
+NOTES: Requires 01_valid_eq....json exists. This
+       contains a dictionary where the keys are indices
+       and the values are equations.
 
 TODO:
 """
+from srvgd.utils.eval import fit_eq, normalize
+from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
+from eqlearner.dataset.processing.tokenization import get_string
 
-import matplotlib.pyplot as plt
+import json
+import torch
+import numpy as np
+import pandas as pd
 
+# Get valid equations
+file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
+with open('01_valid_eq{}.json'.format(file_endname), 'r') as json_file:
+    valid_equations = json.load(json_file)
 
-def get_cumulative_distribution_funtion(X):
-    """Get the probability that x_i > X after X has
-    been sorted (that is x_i is >= i+1 other x's).
-    Parameters
-    ----------
-    X : list
-        A sample from the distribution for
-        which to compute the CDF
-    Returns
-    -------
-    p : list
-        A list of the same length as X that
-        give the probability that x_i > X
-        where X is a randomly selected value
-        and i is the index.
-    """
+for key in valid_equations:
+    if 'x' not in valid_equations[key]:
+        valid_equations[key] += '+0*x'
 
-    X_sorted = sorted(X)
-    n = len(X)
-    p = [i/n for i, x in enumerate(X)]
-    return p, X_sorted
+# Get expected y-values
+test_data = torch.load('test_data_int_comp.pt', map_location=torch.device('cpu'))
+y_true = np.array([d[0].tolist() for d in test_data])
+eq_true = [get_string(d[1].tolist())[5:-3] for d in test_data]
+print(y_true.shape)
 
+# index = 0
+# keys = list(valid_equations.keys())
+# while len(valid_equations) > 3:
+#     del valid_equations[keys[index]]
+#     index += 1
 
-def plot_cumulative_distribution_funtion(X,
-                                         labels=True,
-                                         label=None,
-                                         color=None):
-    """Use get_emprical_cumulative_distribution_funtion to plot the CDF.
-    Parameters
-    ----------
-    X : list
-        A sample from the distribution for
-        which to compute the CDF
-    labels : bool (default=True)
-        If true, label x-axis x and y-axis Pr(X < x)
-    label : str (default=None)
-        The legend label.
-    color : str (default=None)
-        Color to used in plot. If none, it will not
-        be pasted to plt.step.
-    """
+x_int = np.arange(0.1, 3.1, 0.1)[:, None]
+x_ext = np.arange(3.1, 6.1, 0.1)[:, None]
 
-    p, X = get_cumulative_distribution_funtion(X)
+y_list = [y_true[int(i)] for i in valid_equations]
+_, pred_rmse_list, pred_f_list = fit_eq(eq_list=valid_equations.values(),
+                                        support=x_int,
+                                        y_list=y_list)
 
-    if color is None:
-        plt.fill_between(X, len(X)*np.array(p),
-                         step='post', label=label)
-    else:
-        plt.fill_between(X, len(X)*np.array(p),
-                         step='post', label=label,
-                         color=color)
+eq_list = [eq_true[int(i)] for i in valid_equations]
+_, true_rmse_list, true_f_list = fit_eq(eq_list=eq_list,
+                                        support=x_int,
+                                        y_list=y_list)
 
-    if labels:
-        plt.ylabel('$Pr(X < x)$')
-        plt.xlabel('$x$')
+ext_rmse_list = []
+for true_f, pred_f in zip(true_f_list, pred_f_list):
+    _, pred_min_, pred_scale = normalize(pred_f(x_int), return_params=True)
+    _, true_min_, true_scale = normalize(true_f(x_int), return_params=True)
 
-
-if __name__ == '__main__':
-    import pandas as pd
-    import numpy as np
-
-    rmse_data = pd.read_csv('rmse_test.csv').values[:, 1]
-    print(rmse_data.shape)
-    mask = ~(np.logical_or(np.isnan(rmse_data), np.isinf(rmse_data)))
-    print(rmse_data[mask])
-    plt.hist(rmse_data[mask])
-    plt.xscale('log')
-    # plot_cumulative_distribution_funtion(rmse_data[mask], labels=False, color='#8B94FC')
-    plt.xlabel('RMSE')
-    plt.ylabel('Cumulative Counts')
-    # plt.xlim([0, 3])
-    # plt.ylim([0, 1000])
-    plt.savefig('figure_recreation4.pdf')
+    true_y = normalize(true_f(x_ext), true_min_, true_scale).flatten()
+    pred_y = normalize(pred_f(x_ext), pred_min_, pred_scale).flatten()
+    ext_rmse = np.sqrt(np.mean(np.power(true_y-pred_y, 2)))
+    ext_rmse_list.append(ext_rmse)
+print(ext_rmse_list)
+pd.DataFrame([pred_rmse_list, ext_rmse_list]).T.to_csv('02_rmse{}.csv'.format(file_endname), index=False, header=['interpolated_rmse', 'extraplolated_rmse'])

@@ -37,7 +37,7 @@ def get_cdf(X):
     return p, X_sorted
 
 
-def plot_cdf(X, labels=True, label=None, color=None):
+def plot_cdf(X, labels=True, **kwargs):
     """Use get_cdf to plot the CDF.
     Parameters
     ----------
@@ -55,13 +55,8 @@ def plot_cdf(X, labels=True, label=None, color=None):
 
     p, X = get_cdf(X)
 
-    if color is None:
-        plt.fill_between(X, len(X)*np.array(p),
-                         step='post', label=label)
-    else:
-        plt.fill_between(X, len(X)*np.array(p),
-                         step='post', label=label,
-                         color=color)
+    plt.fill_between(X, len(X)*np.array(p),
+                     **kwargs)
 
     if labels:
         plt.ylabel('$Pr(X < x)$')
