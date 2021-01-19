@@ -8,5 +8,8 @@ def get_normalization_params(data):
     return min_, scale_
 
 
-def normalize(data, min_, scale_):
+def normalize(data, min_=None, scale_=None):
+    if min_ is None:
+        assert scale_ is None, 'Either both min_, scale_ are None or neither'
+        min_, scale_ = get_normalization_params(data)
     return (data-min_)*scale_
