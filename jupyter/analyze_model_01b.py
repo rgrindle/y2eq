@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 18, 2021
+LAST MODIFIED: Jan 21, 2021
 
 PURPOSE: Count the number of valid and number of invalid equations.
          But, do it without considering STOP/END. Instead shorten
@@ -26,8 +26,9 @@ from sympy import sin, exp, log, lambdify, Symbol
 
 np.seterr('raise')
 
-file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
-data = pd.read_csv('test_output{}.csv'.format(file_endname)).values
+# file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
+file_endname = '_epochs100_0'
+data = pd.read_csv('test_output{}.csv'.format(file_endname)).values.flatten()
 print(data.shape)
 
 
@@ -53,16 +54,17 @@ invalid = 0
 valid_equations = {}
 x_numeric = np.arange(0.1, 3.1, 0.1)
 x = Symbol('x', real=True)
-for i, d in enumerate(data):
-    for end in range(len(d), 0, -1):
-        eq_str = str(get_string(d[:end])).replace('END', '')
+for i, eq_str in enumerate(data):
+    for end in range(len(eq_str), 0, -1):
+        eq_str = eq_str[:end].replace('END', '').replace('START', '')
         if is_eq_valid(eq_str):
-            print(eq_str)
+            # print(eq_str)
             valid_equations[i] = eq_str
             valid += 1
             break
     else:
         invalid += 1
+        print(eq_str)
     print(valid, invalid)
 
 print('valid', valid)

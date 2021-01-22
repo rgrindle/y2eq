@@ -20,8 +20,9 @@ import numpy as np
 import pandas as pd
 
 # Get valid equations
-file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
-with open('valid_eq{}.json'.format(file_endname), 'r') as json_file:
+# file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
+file_endname = '_epochs100_0'
+with open('01b_valid_eq{}.json'.format(file_endname), 'r') as json_file:
     valid_equations = json.load(json_file)
 
 for key in valid_equations:
@@ -29,7 +30,10 @@ for key in valid_equations:
         valid_equations[key] += '+0*x'
 
 # Get expected y-values
-test_data = torch.load('test_data_int_comp.pt', map_location=torch.device('cpu'))
+device = torch.device('cpu')
+test_data = torch.load('dataset_test.pt', map_location=device)
+# test_data = torch.load('test_data_int_comp.pt', map_location=device)
+
 y_true = np.array([d[0].tolist() for d in test_data])
 eq_true = [get_string(d[1].tolist())[5:-3] for d in test_data]
 print(y_true.shape)
@@ -71,4 +75,4 @@ for true_f, pred_f in zip(true_f_list, pred_f_list):
     ext_rmse = np.sqrt(np.mean(np.power(true_y-pred_y, 2)))
     ext_rmse_list.append(ext_rmse)
 print(ext_rmse_list)
-pd.DataFrame([pred_rmse_list, ext_rmse_list]).T.to_csv('02b_rmse{}.csv'.format(file_endname), index=False, header=['interpolated_rmse', 'extraplolated_rmse'])
+pd.DataFrame([list(valid_equations.keys()), pred_rmse_list, ext_rmse_list]).T.to_csv('02b_rmse{}.csv'.format(file_endname), index=False, header=['index', 'interpolated_rmse', 'extraplolated_rmse'])
