@@ -1,3 +1,17 @@
+"""
+AUTHOR: Ryan Grindle
+
+LAST MODIFIED: Jan 22, 2021
+
+PURPOSE: Update functions used in eqlearner.dataset.processing.tokenization
+         to get a version of pipeline (which I am calling tokenize_eq) that
+         works on strings rather than dictionaries.
+
+NOTES:
+
+TODO:
+"""
+
 import tokenize
 from io import BytesIO
 
