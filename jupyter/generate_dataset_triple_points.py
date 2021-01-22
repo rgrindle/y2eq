@@ -34,11 +34,13 @@ def redefine_dataset_change_x(end_name, support):
     # func_forms = [get_string(d.tolist()) for d in dataset_output_list]
 
     dataset_inputs = torch.zeros(len(dataset), len(support))
-
     for i, _ in enumerate(eqs):
         f = get_f(eqs[i])
         y = f(support)
-        dataset_inputs[i, :] = torch.Tensor(y)
+        if np.any(np.isnan(y)):
+            dataset_inputs[i, :] = dataset_inputs[i-1, :]
+        else:
+            dataset_inputs[i, :] = torch.Tensor(y)
         print('', flush=True, end='')
 
     dataset_outputs = torch.zeros(len(dataset), len(dataset_output_list[0]))
