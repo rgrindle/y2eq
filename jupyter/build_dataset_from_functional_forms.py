@@ -1,23 +1,35 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 19, 2021
+LAST MODIFIED: Jan 22, 2021
 
-PURPOSE: Given a list of functional forms, create a dataset
-         of y-values (inputs) and functional forms (outputs).
-         When using the generate_datasets.py there are many
-         functional forms that are used only once. I don't
-         think this should happen.
+PURPOSE: Take a list of functional forms and generate
+         a dataset of a given size from them. Inputs will
+         be y-values and outputs will be the functional forms.
 
-NOTES: ff = function form
+NOTES: Should the number of instances of each functional form
+       in the dataset be related to the number of possible
+       coefficients in the functional form?
+       For now, each functional form will have about the
+       same number of observations in the dataset.
+       ff = functional form
 
 TODO:
 """
+
+from tokenization_rg import tokenize_eq
 from srvgd.utils.normalize import normalize
+
+import torch
 import numpy as np
 import pandas as pd
 
 import re
+
+if torch.cuda.is_available():
+    from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
+else:
+    from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
 def get_coeff(rand_interval):
@@ -110,30 +122,47 @@ def apply_coeffs(ff, rand_interval=(-1, 1)):
     return ff_coeff, coeff_index+1
 
 
-def get_dataset(support, ff_list, dataset_size):
+def get_dataset(support, ff_list, dataset_size,
+                other_dataset=None, save_name='_defaultname'):
+    if other_dataset is None:
+        other_dataset_inputs = []
+    else:
+        other_dataset_inputs = [d[0].tolist() for d in other_dataset]
+
     dataset_inputs = []
     dataset_outputs = []
     eq_with_coeff_list = []
-    while len(dataset_inputs) < dataset_size:
-        for ff in ff_list:
-            ff_coeff = apply_coeffs(ff, (-3, 3))[0]
-            f = eval('lambda x:'+numpify(ff_coeff))
-            dataset_inputs.append(normalize(f(support)))
-            dataset_outputs.append(ff)
-            eq_with_coeff_list.append(ff_coeff)
+    count = 0
+    while count < dataset_size:
+        ff = ff_list[count % len(ff_list)]
+        ff_coeff = apply_coeffs(ff, (-3, 3))[0]
+        f = eval('lambda x:'+numpify(ff_coeff))
+        Y = f(support)
+        if not np.any(np.isnan(Y)):
+            if np.min(Y) != np.max(Y):
+                if np.all(np.abs(Y) <= 1000):
+                    normalized_Y = normalize(Y).tolist()
+                    if normalized_Y not in dataset_inputs and normalized_Y not in other_dataset_inputs:
+                        dataset_inputs.append(normalized_Y)
+                        tokenized_eq = tokenize_eq(ff)
+                        dataset_outputs.append(torch.Tensor(tokenized_eq))
+                        eq_with_coeff_list.append(ff)
 
-    for i in range(10):
-        print(i)
-        print(dataset_inputs[i])
-        print(dataset_outputs[i])
-        print(eq_with_coeff_list[i])
-        print()
-        import matplotlib.pyplot as plt
-        plt.close('all')
-        plt.plot(support, dataset_inputs[i], '.-')
-        plt.title(eq_with_coeff_list[i])
-        plt.show()
+                        print('.', flush=True, end='')
+                        count += 1
 
+    print()
+    inputs_tensor = torch.zeros(len(dataset_inputs), 30)
+    for i, y in enumerate(dataset_inputs):
+        inputs_tensor[i, :] = torch.Tensor(y)
+
+    filename = 'equations_with_coeff'+save_name+'.csv'
+    pd.DataFrame(eq_with_coeff_list).to_csv(filename, index=False, header=None)
+
+    dataset = TensorDataset(inputs_tensor, dataset_outputs)
+    torch.save(dataset, 'dataset'+save_name+'.pt')
+
+    return dataset
 
 
 def numpify(eq):
@@ -141,10 +170,17 @@ def numpify(eq):
         eq = eq.replace(prim, 'np.'+prim)
     return eq
 
-if __name__ == '__main__':
-    np.random.seed(0)
 
-    # load functional forms
-    ff_list = ['x', 'sin(x)']
+if __name__ == '__main__':
+    ff_list = pd.read_csv('unique_ff_list.csv', header=None).values.flatten()
     support = np.arange(0.1, 3.1, 0.1)
-    dataset = get_dataset(support, ff_list, dataset_size=10)
+
+    dataset = None
+    dataset_size = {'train': 50, 'test': 5}
+    for dataset_type in ['train', 'test']:
+        dataset = get_dataset(ff_list=ff_list,
+                              support=support,
+                              dataset_size=dataset_size[dataset_type],
+                              other_dataset=dataset,
+                              save_name='_ff')
+        torch.save(dataset, 'dataset_{}_ff.pt'.format(dataset_type))
