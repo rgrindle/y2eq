@@ -14,25 +14,27 @@ if __name__ == '__main__':
     numerical_reg_data = [v for v in numerical_reg_data if 0 <= v <= 3]
     plot_cdf(numerical_reg_data, color='#CF6875', alpha=0.75, label='numeric regression NN')
 
-    # symbolic regression data
-    file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
-    rmse_data = pd.read_csv('../jupyter/rmse{}.csv'.format(file_endname)).values[:, 1]
-    mask = ~(np.logical_or(np.isnan(rmse_data), np.isinf(rmse_data)))
-    print(len(rmse_data))
-    # print(rmse_data[mask])
-    rmse_data = [r for r in rmse_data[mask] if 0 <= r <= 3]
-    print(len(rmse_data))
-    plot_cdf(rmse_data, labels=False, color='#8B94FC', alpha=0.75, label='symbolic regression NN (more valid)')
-
     # symbolic regression data other less valid
-    file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
-    rmse_data = pd.read_csv('../jupyter/02_rmse{}.csv'.format(file_endname)).values[:, 1]
+    file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
+    # file_endname = '_epochs100_0'
+    rmse_data = pd.read_csv('../jupyter/02_rmse{}.csv'.format(file_endname)).values[:, 2]
     print(len(rmse_data))
     mask = ~(np.logical_or(np.isnan(rmse_data), np.isinf(rmse_data)))
     # print(rmse_data[mask])
     rmse_data = [r for r in rmse_data[mask] if 0 <= r <= 3]
     print(len(rmse_data))
     plot_cdf(rmse_data, labels=False, color='C2', alpha=0.75, label='symbolic regression NN (less valid)')
+
+    # # symbolic regression data
+    # file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
+    # # file_endname = '_epochs100_0'
+    # rmse_data = pd.read_csv('../jupyter/02b_rmse{}.csv'.format(file_endname)).values[:, 2]
+    # mask = ~(np.logical_or(np.isnan(rmse_data), np.isinf(rmse_data)))
+    # print(len(rmse_data))
+    # # print(rmse_data[mask])
+    # rmse_data = [r for r in rmse_data[mask] if 0 <= r <= 3]
+    # print(len(rmse_data))
+    # plot_cdf(rmse_data, labels=False, color='#8B94FC', alpha=0.75, label='symbolic regression NN (more valid)')
 
     plt.xlabel('RMSE')
     plt.ylabel('Cumulative Counts')
