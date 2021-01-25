@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 22, 2021
+LAST MODIFIED: Jan 24, 2021
 
 PURPOSE: Take a list of functional forms and generate
          a dataset of a given size from them. Inputs will
@@ -16,7 +16,7 @@ NOTES: Should the number of instances of each functional form
 
 TODO:
 """
-
+from generate_dataset import pad
 from tokenization_rg import tokenize_eq
 from srvgd.utils.normalize import normalize
 
@@ -117,31 +117,33 @@ def apply_coeffs(ff, rand_interval=(-1, 1)):
         ff_coeff = ''.join(ff_coeff_str_list)
 
     # Add verticle shift
-    coeff = get_coeff(rand_interval)
-    ff_coeff += '+{:.3f}'.format(coeff)
-    return ff_coeff, coeff_index+1
+    # coeff = get_coeff(rand_interval)
+    # ff_coeff += '+{:.3f}'.format(coeff)
+    return ff_coeff, coeff_index
 
 
 def get_dataset(support, ff_list, dataset_size,
-                other_dataset=None, save_name='_defaultname'):
-    if other_dataset is None:
+                other_dataset_inputs=None):
+    if other_dataset_inputs is None:
         other_dataset_inputs = []
-    else:
-        other_dataset_inputs = [d[0].tolist() for d in other_dataset]
+
+    ff_list = list(ff_list)
 
     dataset_inputs = []
     dataset_outputs = []
     eq_with_coeff_list = []
     count = 0
+    attempt_count = 0
     while count < dataset_size:
         ff = ff_list[count % len(ff_list)]
         ff_coeff = apply_coeffs(ff, (-3, 3))[0]
         f = eval('lambda x:'+numpify(ff_coeff))
         Y = f(support)
+        attempt_count += 1
         if not np.any(np.isnan(Y)):
             if np.min(Y) != np.max(Y):
                 if np.all(np.abs(Y) <= 1000):
-                    normalized_Y = normalize(Y).tolist()
+                    normalized_Y = np.around(normalize(Y), 7).tolist()
                     if normalized_Y not in dataset_inputs and normalized_Y not in other_dataset_inputs:
                         dataset_inputs.append(normalized_Y)
                         tokenized_eq = tokenize_eq(ff)
@@ -150,19 +152,14 @@ def get_dataset(support, ff_list, dataset_size,
 
                         print('.', flush=True, end='')
                         count += 1
+                        attempt_count = 0
+
+        if attempt_count > 100:
+            del ff_list[count % len(ff_list)]
+            attempt_count = 0
 
     print()
-    inputs_tensor = torch.zeros(len(dataset_inputs), 30)
-    for i, y in enumerate(dataset_inputs):
-        inputs_tensor[i, :] = torch.Tensor(y)
-
-    filename = 'equations_with_coeff'+save_name+'.csv'
-    pd.DataFrame(eq_with_coeff_list).to_csv(filename, index=False, header=None)
-
-    dataset = TensorDataset(inputs_tensor, dataset_outputs)
-    torch.save(dataset, 'dataset'+save_name+'.pt')
-
-    return dataset
+    return dataset_inputs, dataset_outputs, eq_with_coeff_list
 
 
 def numpify(eq):
@@ -171,16 +168,31 @@ def numpify(eq):
     return eq
 
 
+def save(dataset_inputs, dataset_outputs, eq_with_coeff_list, save_name):
+    inputs_tensor = torch.zeros(len(dataset_inputs), 30)
+    for i, y in enumerate(dataset_inputs):
+        inputs_tensor[i, :] = torch.Tensor(y)
+
+    filename = 'equations_with_coeff'+save_name+'.csv'
+    pd.DataFrame(eq_with_coeff_list).to_csv(filename, index=False, header=None)
+
+    dataset = TensorDataset(inputs_tensor, pad(dataset_outputs))
+    torch.save(dataset, 'dataset'+save_name+'.pt')
+
+
 if __name__ == '__main__':
+    np.random.seed(0)
+
     ff_list = pd.read_csv('unique_ff_list.csv', header=None).values.flatten()
     support = np.arange(0.1, 3.1, 0.1)
 
-    dataset = None
-    dataset_size = {'train': 50, 'test': 5}
+    dataset_parts = (None,)
+    dataset_size = {'train': len(ff_list), 'test': len(ff_list)}
     for dataset_type in ['train', 'test']:
-        dataset = get_dataset(ff_list=ff_list,
-                              support=support,
-                              dataset_size=dataset_size[dataset_type],
-                              other_dataset=dataset,
-                              save_name='_ff')
-        torch.save(dataset, 'dataset_{}_ff.pt'.format(dataset_type))
+        dataset_parts = get_dataset(ff_list=ff_list,
+                                    support=support,
+                                    dataset_size=dataset_size[dataset_type],
+                                    other_dataset_inputs=dataset_parts[0])
+
+        save(*dataset_parts, save_name='_'+dataset_type+'_ff_exp1')
+        save(dataset_parts[0]*2, pad(dataset_parts[1]*2), dataset_parts[2]*2, save_name='_'+dataset_type+'_ff_exp2')
