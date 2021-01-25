@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 12, 2021
+LAST MODIFIED: Jan 24, 2021
 
 PURPOSE: Script version of jupyter notebook of the same
          name.
@@ -34,8 +34,13 @@ parser.add_argument('--checkpoint', type=str,
                     help='Provide name of model to continue training. '
                          'Example: if you can cnn_model1.pt and optimizer_model1.pt '
                          'use --checkpoint _model1 to continue training.')
+parser.add_argument('--dataset', type=str,
+                    help='Specify dataset to load and use for training. '
+                         'it is assumed that there is dataset with the same name '
+                         'except that train is replaced by test.',
+                    default='dataset_train.pt')
 args = parser.parse_args()
-
+print(args)
 
 SEED = 1234
 random.seed(SEED)
@@ -76,9 +81,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 # train_data = torch.load('train_data_int_comp.pt')
-train_data = torch.load('dataset_train.pt', map_location=device)
+train_data = torch.load(args.dataset, map_location=device)
 # test_data = torch.load('test_data_int_comp.pt')
-test_data = torch.load('dataset_test.pt', map_location=device)
+test_data = torch.load(args.dataset.replace('train', 'test'), map_location=device)
 
 
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
@@ -103,12 +108,13 @@ else:
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 criterion = nn.CrossEntropyLoss(ignore_index=0)
-N_EPOCHS = 330
+N_EPOCHS = 100
 CLIP = 1
 
 model = train(N_EPOCHS, train_loader, valid_loader,
               model, optimizer, criterion,
-              CLIP, noise_Y=False, sigma=0.1)
+              CLIP, noise_Y=False, sigma=0.1,
+              save_end_name='_{}'.format(args.dataset))
 
 test_loss = evaluate(model, test_loader, criterion)
 

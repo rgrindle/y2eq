@@ -11,7 +11,7 @@ import os
 def train(num_epochs, train_loader, valid_loader,
           model, optimizer, criterion,
           clip, noise_Y=False, sigma=0.1,
-          save_loc=''):
+          save_loc='', save_end_name=''):
     best_valid_loss = float('inf')
     torch.set_num_threads(1)
     history = {'train_loss': [], 'valid_loss': []}
@@ -32,8 +32,8 @@ def train(num_epochs, train_loader, valid_loader,
 
         if valid_loss <= best_valid_loss:
             best_valid_loss = valid_loss
-            torch.save(model.state_dict(), os.path.join(save_loc, 'cnn.pt'))
-            torch.save(optimizer.state_dict(), os.path.join(save_loc, 'optimizer.pt'))
+            torch.save(model.state_dict(), os.path.join(save_loc, 'cnn{}.pt'.format(save_end_name)))
+            torch.save(optimizer.state_dict(), os.path.join(save_loc, 'optimizer{}.pt'.format(save_end_name)))
             print('saving')
 
         print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
@@ -41,7 +41,7 @@ def train(num_epochs, train_loader, valid_loader,
         print(f'\t Val. Loss: {valid_loss:.3f})')
         print('optimizer learning rate', optimizer.param_groups[0]['lr'])
 
-    pd.DataFrame(history.values()).T.to_csv(os.path.join(save_loc, 'train_history.csv'), index=False, header=list(history.keys()))
+    pd.DataFrame(history.values()).T.to_csv(os.path.join(save_loc, 'train_history{}.csv'.format(save_end_name)), index=False, header=list(history.keys()))
     model.load_state_dict(torch.load('cnn.pt'))
     return model
 
