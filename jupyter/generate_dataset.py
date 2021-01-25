@@ -48,7 +48,7 @@ def get_dataset(dataset_size, save_loc='',
     inputs, outputs, eq_list = get_dataset_data(dataset_size, other_dataset)
     outputs_padded = pad(outputs)
 
-    dataset = TensorDataset(inputs, outputs_padded.long())
+    dataset = TensorDataset(inputs, outputs_padded)
 
     save(dataset, eq_list, save_loc, save_name)
     return dataset
@@ -133,7 +133,7 @@ def pad(unpadded):
     """
     max_len = np.max([len(y) for y in unpadded])
     padded = [np.hstack((eq_seq, np.zeros(max_len-len(eq_seq)))) for eq_seq in unpadded]
-    return torch.Tensor(padded)
+    return torch.Tensor(padded).long()
 
 
 def save(dataset, eq_list,
