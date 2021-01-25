@@ -117,7 +117,7 @@ CLIP = 1
 model = train(N_EPOCHS, train_loader, valid_loader,
               model, optimizer, criterion,
               CLIP, noise_Y=False, sigma=0.1,
-              save_end_name='_{}_batchsize{}'.format(args.dataset, args.batch_size))
+              save_end_name='_{}_batchsize{}'.format(args.dataset.replace('.pt', ''), args.batch_size))
 
 test_loss = evaluate(model, test_loader, criterion)
 
