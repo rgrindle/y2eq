@@ -39,6 +39,9 @@ parser.add_argument('--dataset', type=str,
                          'it is assumed that there is dataset with the same name '
                          'except that train is replaced by test.',
                     default='dataset_train.pt')
+parser.add_argument('--batch_size', type=int,
+                    help='The batch size to use during training.',
+                    default=2000)
 args = parser.parse_args()
 print(args)
 
@@ -89,7 +92,7 @@ test_data = torch.load(args.dataset.replace('train', 'test'), map_location=devic
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 
-train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=2000, valid_size=0.30)
+train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=args.batch_size, valid_size=0.30)
 
 if args.checkpoint is None:
     model = get_model(device)
@@ -114,7 +117,7 @@ CLIP = 1
 model = train(N_EPOCHS, train_loader, valid_loader,
               model, optimizer, criterion,
               CLIP, noise_Y=False, sigma=0.1,
-              save_end_name='_{}'.format(args.dataset))
+              save_end_name='_{}_batchsize{}'.format(args.dataset, args.batch_size))
 
 test_loss = evaluate(model, test_loader, criterion)
 
