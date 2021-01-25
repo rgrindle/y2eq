@@ -181,8 +181,8 @@ def apply_coeffs(eq):
         c_eq = ''.join(c_eq_str_list)
 
     # Add verticle shift
-    c_eq += '+c[{}]'.format(coeff_index)
-    return c_eq, coeff_index+1
+    # c_eq += '+c[{}]'.format(coeff_index)
+    return c_eq, coeff_index
 
 
 def RMSE(y, y_hat):
