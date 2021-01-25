@@ -51,7 +51,7 @@ def train_one_epoch(model, iterator, optimizer, criterion,
     model.train()
 
     epoch_loss = 0
-    print('batch_size = ', len(iterator))
+    print('number of batches = ', len(iterator))
 
     for i, batch in enumerate(iterator):
         print('.', end='', flush=True)
