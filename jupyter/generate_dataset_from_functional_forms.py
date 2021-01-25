@@ -187,12 +187,11 @@ if __name__ == '__main__':
     support = np.arange(0.1, 3.1, 0.1)
 
     dataset_parts = (None,)
-    dataset_size = {'train': len(ff_list), 'test': len(ff_list)}
+    dataset_size = {'train': 50000, 'test': 1000}
     for dataset_type in ['train', 'test']:
         dataset_parts = get_dataset(ff_list=ff_list,
                                     support=support,
                                     dataset_size=dataset_size[dataset_type],
                                     other_dataset_inputs=dataset_parts[0])
 
-        save(*dataset_parts, save_name='_'+dataset_type+'_ff_exp1')
-        save(dataset_parts[0]*2, pad(dataset_parts[1]*2), dataset_parts[2]*2, save_name='_'+dataset_type+'_ff_exp2')
+        save(*dataset_parts, save_name='_'+dataset_type+'_ff')
