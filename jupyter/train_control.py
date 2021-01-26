@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 25, 2021
+LAST MODIFIED: Jan 26, 2021
 
 PURPOSE: Script version of jupyter notebook of the same
          name.
@@ -51,6 +51,9 @@ parser.add_argument('--clip', type=float,
 parser.add_argument('--layers', type=int,
                     help='Number of layers in encoder/decoder',
                     default=10)
+parser.add_argument('--epochs', type=int,
+                    help='Number of epochs to train for.',
+                    default=100)
 args = parser.parse_args()
 print(args)
 
@@ -120,12 +123,11 @@ else:
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 criterion = nn.CrossEntropyLoss(ignore_index=0)
-N_EPOCHS = 100
 
-model = train(N_EPOCHS, train_loader, valid_loader,
+model = train(args.epochs, train_loader, valid_loader,
               model, optimizer, criterion,
               args.clip, noise_Y=False, sigma=0.1,
-              save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers))
+              save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.epochs))
 
 test_loss = evaluate(model, test_loader, criterion)
 
