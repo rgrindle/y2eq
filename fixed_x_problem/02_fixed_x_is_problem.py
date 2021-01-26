@@ -1,0 +1,37 @@
+"""
+AUTHOR: Ryan Grindle
+
+LAST MODIFIED: Jan 26, 2021
+
+PURPOSE: Confirm that fixed x values used during training
+         is a problem for the current system. Step 2 (this
+         script) is to compute the RMSE of the output equations
+         from step one and the y-values from step 0.
+
+NOTES:
+
+TODO:
+"""
+from srvgd.utils.eval import regression, get_f, apply_coeffs
+import pandas as pd
+
+import json
+
+with open('00_x_list.json', 'r') as json_file:
+    x_list = json.load(json_file)
+
+with open('00_y_unnormalized_list.json', 'r') as json_file:
+    y_list = json.load(json_file)
+
+ff_list = pd.read_csv('01_predicted_ff.csv', header=None).values.flatten()
+ff_list = [ff[5:-3] for ff in ff_list]
+
+rmse_list = []
+for ff, y, x in zip(ff_list, y_list, x_list):
+    ff_coeff, num_coeffs = apply_coeffs(ff)
+    print(ff)
+    print(ff_coeff)
+    f_hat = get_f(ff_coeff)
+    coeffs, rmse = regression(f_hat, y, num_coeffs, x)
+    print(rmse)
+    rmse_list.append(rmse)
