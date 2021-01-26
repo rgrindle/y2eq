@@ -124,11 +124,11 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 
 criterion = nn.CrossEntropyLoss(ignore_index=0)
 
-model = train(args.epochs, train_loader, valid_loader,
-              model, optimizer, criterion,
-              args.clip, noise_Y=False, sigma=0.1,
-              save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.epochs))
+train(args.epochs, train_loader, valid_loader,
+      model, optimizer, criterion,
+      args.clip, noise_Y=False, sigma=0.1,
+      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.epochs))
 
-test_loss = evaluate(model, test_loader, criterion)
+# test_loss = evaluate(model, test_loader, criterion)
 
-print(f'| Test Loss: {test_loss:.3f} |')
+# print(f'| Test Loss: {test_loss:.3f} |')

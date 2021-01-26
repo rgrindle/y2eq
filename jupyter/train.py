@@ -42,8 +42,8 @@ def train(num_epochs, train_loader, valid_loader,
         print('optimizer learning rate', optimizer.param_groups[0]['lr'])
 
     pd.DataFrame(history.values()).T.to_csv(os.path.join(save_loc, 'train_history{}.csv'.format(save_end_name)), index=False, header=list(history.keys()))
-    model.load_state_dict(torch.load('cnn.pt'))
-    return model
+    # model.load_state_dict(torch.load('cnn.pt'))
+    # return model
 
 
 def train_one_epoch(model, iterator, optimizer, criterion,
