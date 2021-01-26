@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 24, 2021
+LAST MODIFIED: Jan 25, 2021
 
 PURPOSE: Script version of jupyter notebook of the same
          name.
@@ -42,6 +42,15 @@ parser.add_argument('--dataset', type=str,
 parser.add_argument('--batch_size', type=int,
                     help='The batch size to use during training.',
                     default=2000)
+parser.add_argument('--lr', type=float,
+                    help='Learning rate used by Adam',
+                    default=0.0001)
+parser.add_argument('--clip', type=float,
+                    help='Value for gradient clipping.',
+                    default=1)
+parser.add_argument('--layers', type=int,
+                    help='Number of layers in encoder/decoder',
+                    default=10)
 args = parser.parse_args()
 print(args)
 
@@ -95,13 +104,13 @@ print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=args.batch_size, valid_size=0.30)
 
 if args.checkpoint is None:
-    model = get_model(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    model = get_model(device, layers=args.layers)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
-    model = get_model(device, 'cnn{}.pt'.format(args.checkpoint))
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    model = get_model(device, load_weights='cnn{}.pt'.format(args.checkpoint), layers=args.layers)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
     optimizer.load_state_dict(torch.load('optimizer{}.pt'.format(args.checkpoint),
                                          map_location=device))
     print('done.')
@@ -112,12 +121,11 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 
 criterion = nn.CrossEntropyLoss(ignore_index=0)
 N_EPOCHS = 100
-CLIP = 1
 
 model = train(N_EPOCHS, train_loader, valid_loader,
               model, optimizer, criterion,
-              CLIP, noise_Y=False, sigma=0.1,
-              save_end_name='_{}_batchsize{}'.format(args.dataset.replace('.pt', ''), args.batch_size))
+              args.clip, noise_Y=False, sigma=0.1,
+              save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers))
 
 test_loss = evaluate(model, test_loader, criterion)
 
