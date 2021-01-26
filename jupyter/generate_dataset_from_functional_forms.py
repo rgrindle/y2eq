@@ -123,6 +123,7 @@ def apply_coeffs(ff, rand_interval=(-1, 1)):
 
 
 def get_dataset(support, ff_list, dataset_size,
+                support_ext,
                 other_dataset_inputs=None):
     if other_dataset_inputs is None:
         other_dataset_inputs = []
@@ -140,15 +141,15 @@ def get_dataset(support, ff_list, dataset_size,
         f = eval('lambda x:'+numpify(ff_coeff))
         Y = f(support)
         attempt_count += 1
-        if not np.any(np.isnan(Y)):
+        if not np.any(np.isnan(Y)) and not np.any(np.isnan(f(support_ext))):
             if np.min(Y) != np.max(Y):
                 if np.all(np.abs(Y) <= 1000):
                     normalized_Y = np.around(normalize(Y), 7).tolist()
                     if normalized_Y not in dataset_inputs and normalized_Y not in other_dataset_inputs:
                         dataset_inputs.append(normalized_Y)
-                        tokenized_eq = tokenize_eq(ff)
-                        dataset_outputs.append(torch.Tensor(tokenized_eq))
-                        eq_with_coeff_list.append(ff)
+                        tokenized_ff = tokenize_eq(ff)
+                        dataset_outputs.append(torch.Tensor(tokenized_ff))
+                        eq_with_coeff_list.append(ff_coeff)
 
                         print('.', flush=True, end='')
                         count += 1
@@ -184,6 +185,7 @@ if __name__ == '__main__':
     np.random.seed(0)
 
     ff_list = pd.read_csv('unique_ff_list.csv', header=None).values.flatten()
+    np.random.shuffle(ff_list)
     support = np.arange(0.1, 3.1, 0.1)
 
     dataset_parts = (None,)
@@ -191,6 +193,7 @@ if __name__ == '__main__':
     for dataset_type in ['train', 'test']:
         dataset_parts = get_dataset(ff_list=ff_list,
                                     support=support,
+                                    support_ext=np.arange(3.1, 6.1, 0.1),
                                     dataset_size=dataset_size[dataset_type],
                                     other_dataset_inputs=dataset_parts[0])
 
