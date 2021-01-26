@@ -9,14 +9,15 @@ NOTES:
 
 TODO:
 """
-from analyze_model_00 import translate_sentence
-from get_model import get_model
+from srvgd.utils.eval import translate_sentence
+from srvgd.architecture.torch.get_model import get_model
 
 import torch
 import pandas as pd
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = get_model(device, layers=10)
+model = get_model(device,
+                  layers=10)
 test_data = torch.load('dataset_test_ff.pt', map_location=device)
 
 predicted_data = []

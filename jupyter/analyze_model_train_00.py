@@ -11,7 +11,7 @@ TODO:
 """
 from eqlearner.dataset.processing.tokenization import get_string
 from tokenization_rg import default_map
-from get_model import get_model
+from srvgd.architecture.torch.get_model import get_model
 from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 import torch

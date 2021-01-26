@@ -11,8 +11,7 @@ NOTES: Only includes the training portion (no dataset generation)
 TODO:
 """
 from train import train
-from evaluate import evaluate
-from get_model import get_model
+from srvgd.architecture.torch.get_model import get_model
 
 import torch
 import torch.nn as nn

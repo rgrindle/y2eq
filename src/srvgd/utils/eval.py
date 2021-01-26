@@ -9,17 +9,16 @@ NOTES:
 
 TODO:
 """
-from eqlearner.dataset.processing.tokenization import default_map, reverse_map
+from eqlearner.dataset.processing.tokenization import get_string
 from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
 
+import torch
 from scipy.optimize import minimize
-import cma
 import re
 from tensorflow import keras
 import numpy as np
-import sympy
-from sympy import sin, log, exp, cos, cosh, E  # noqa: F401
+# from sympy import sin, log, exp, cos, cosh, E  # noqa: F401
 
 import os
 
@@ -42,23 +41,23 @@ def get_onehot_from_softmax(softmax):
     return np.array(onehots)
 
 
-def get_string(string, mapping=None, sym_mapping=None):
-    """Modified version of
-    eqlearner.dataset.processing.tokenization.get_string.
-    This version places 'END' and removes everything after it."""
-    if not mapping:
-        tmp = default_map()
-        mapping = reverse_map(tmp, symbols=sym_mapping)
-    mapping_string = mapping.copy()
-    mapping_string[12] = 'START'
-    mapping_string[13] = 'END'
-    curr = ''.join([mapping_string[digit] for digit in string])
-    if len(string) < 2:
-        return RuntimeError
-    if len(string) == 2:
-        return 0
-    end = curr.find('END')
-    return curr[:end]
+# def get_string(string, mapping=None, sym_mapping=None):
+#     """Modified version of
+#     eqlearner.dataset.processing.tokenization.get_string.
+#     This version places 'END' and removes everything after it."""
+#     if not mapping:
+#         tmp = default_map()
+#         mapping = reverse_map(tmp, symbols=sym_mapping)
+#     mapping_string = mapping.copy()
+#     mapping_string[12] = 'START'
+#     mapping_string[13] = 'END'
+#     curr = ''.join([mapping_string[digit] for digit in string])
+#     if len(string) < 2:
+#         return RuntimeError
+#     if len(string) == 2:
+#         return 0
+#     end = curr.find('END')
+#     return curr[:end]
 
 
 def decode(output):
@@ -267,6 +266,49 @@ def is_eq_valid(eq_str, x=np.arange(0.1, 3.1, 0.1)):
         return type(y_hat_values) != np.ufunc
     except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
         return False
+
+
+def default_map():
+    default_map = {'x': 1, 'sin': 2, 'exp': 3, 'log': 4, '(': 5, ')': 6, '**': 7, '*': 8, '+': 9,
+                   '/': 10, 'E': 11, 'START': 12, 'END': 13, 'sqrt': 14, '-': 15}
+    max_val = max(list(default_map.values()))
+    numbers = {str(n): max_val+n for n in range(1, 10)}
+    default_map = {**default_map, **numbers}
+    return default_map
+
+
+def translate_sentence(sentence, model, device, max_len=100):
+
+    model.eval()
+
+    if type(sentence) != torch.Tensor:
+        src_tensor = torch.Tensor(sentence)
+
+    src_tensor = src_tensor.unsqueeze(0)
+
+    with torch.no_grad():
+        encoder_conved, encoder_combined = model.encoder(src_tensor)
+
+    mapping = default_map()
+    trg_indexes = [mapping['START']]
+
+    for i in range(max_len):
+
+        trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
+
+        with torch.no_grad():
+            output, attention = model.decoder(trg_tensor, encoder_conved, encoder_combined)
+
+        pred_token = output.argmax(2)[:, -1].item()
+
+        trg_indexes.append(pred_token)
+
+        if pred_token == mapping['END']:
+            break
+
+    trg_tokens = get_string(trg_indexes)
+
+    return trg_tokens, attention
 
 
 if __name__ == '__main__':

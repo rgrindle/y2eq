@@ -9,49 +9,12 @@ NOTES:
 
 TODO:
 """
-from eqlearner.dataset.processing.tokenization import get_string
-from tokenization_rg import default_map
-from get_model import get_model
+from srvgd.utils.eval import translate_sentence
+from srvgd.architecture.torch.get_model import get_model
 from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 import torch
-from torch.utils.data import DataLoader
-import numpy as np
 import pandas as pd
-
-import itertools
-
-
-def translate_sentence(sentence, model, device, max_len=100):
-
-    model.eval()
-
-    # src_tensor = torch.LongTensor(numerized_tokens).unsqueeze(0).to(device)
-    src_tensor = sentence.unsqueeze(0)
-
-    with torch.no_grad():
-        encoder_conved, encoder_combined = model.encoder(src_tensor)
-
-    mapping = default_map()
-    trg_indexes = [mapping['START']]
-
-    for i in range(max_len):
-
-        trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
-
-        with torch.no_grad():
-            output, attention = model.decoder(trg_tensor, encoder_conved, encoder_combined)
-
-        pred_token = output.argmax(2)[:, -1].item()
-
-        trg_indexes.append(pred_token)
-
-        if pred_token == mapping['END']:
-            break
-
-    trg_tokens = get_string(trg_indexes)
-
-    return trg_tokens, attention
 
 
 if __name__ == '__main__':
