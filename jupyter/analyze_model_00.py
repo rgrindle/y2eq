@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 6, 2021
+LAST MODIFIED: Jan 26, 2021
 
 PURPOSE: Get output of trained NN on test dataset.
 
@@ -25,20 +25,6 @@ import itertools
 def translate_sentence(sentence, model, device, max_len=100):
 
     model.eval()
-
-    # if isinstance(sentence, str):
-    #     numerized_tokens = tokenize_eq(sentence)
-    #     # nlp = spacy.load('de')
-    #     # tokens = [token.text.lower() for token in nlp(sentence)]
-    # else:
-    #     # tokens = [token.lower() for token in sentence]
-    #     numerized_tokens = sentence
-
-    # Apply start and end tokens
-    # tokens = [src_field.init_token] + tokens + [src_field.eos_token]
-
-    # # Convert to integer representation of tokens
-    # src_indexes = [src_field.vocab.stoi[token] for token in tokens]
 
     # src_tensor = torch.LongTensor(numerized_tokens).unsqueeze(0).to(device)
     src_tensor = sentence.unsqueeze(0)
@@ -68,22 +54,28 @@ def translate_sentence(sentence, model, device, max_len=100):
     return trg_tokens, attention
 
 
-file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
-# file_endname = '_epochs100_0'
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = get_model(device, 'cnn{}.pt'.format(file_endname))
-model.eval()
+if __name__ == '__main__':
 
-test_data = torch.load('dataset_test.pt', map_location=device)
-# test_data = torch.load('test_data_int_comp.pt', map_location=device)
+    file_endname = '_dataset_train_ff_batchsize128_lr0.001_clip0.1_layers10_10'
+    # file_endname = '_epochs100_0'
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = get_model(device,
+                      load_weights='cnn{}.pt'.format(file_endname))
+    model.eval()
 
-predicted_data = []
-for obs in test_data:
-    inputs, targets = obs
-    predicted = translate_sentence(sentence=inputs,
-                                   model=model,
-                                   device=device)[0]
-    predicted_data.append(predicted)
-    print('.', flush=True, end='')
+    test_data = torch.load('dataset_test_ff.pt', map_location=device)
+    # test_data = torch.load('test_data_int_comp.pt', map_location=device)
 
-pd.DataFrame(predicted_data).to_csv('test_output{}.csv'.format(file_endname), index=False)
+    predicted_data = []
+    for i, obs in enumerate(test_data):
+        if i >= 1000:
+            break
+
+        inputs, targets = obs
+        predicted = translate_sentence(sentence=inputs,
+                                       model=model,
+                                       device=device)[0]
+        predicted_data.append(predicted)
+        print('.', flush=True, end='')
+
+    pd.DataFrame(predicted_data).to_csv('test_output{}.csv'.format(file_endname), index=False)
