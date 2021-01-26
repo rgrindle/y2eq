@@ -81,7 +81,6 @@ def get_f(eq):
     else:
         lambda_str_beg = 'lambda x:'
     f = eval(lambda_str_beg+eq)
-    print(eq)
     return f
 
 
@@ -94,7 +93,6 @@ def is_valid_eq_list(eq_list, support):
             mask.append(True)
         except (SyntaxError, TypeError, AttributeError):
             mask.append(False)
-        print(eq, mask[-1])
     return np.array(mask)
 
 
@@ -217,7 +215,8 @@ def RMSE(y, y_hat):
 def regression(f_hat, y, num_coeffs, support):
     def loss(c, x):
         y_hat = f_hat(c, x).flatten()
-        return RMSE(normalize(y_hat), y)
+        # return RMSE(normalize(y_hat), y)
+        return RMSE(y_hat, y)
 
     res = minimize(loss, np.ones(num_coeffs), args=(support,), bounds=[(-3, 3)]*num_coeffs, method='L-BFGS-B')
     return res.x, res.fun
@@ -234,7 +233,7 @@ def normalize(y, min_=None, scale=None, return_params=False):
 
 
 def fit_eq(eq_list, support, y_list):
-    x = sympy.symbols('x')  # noqa: F841
+    # x = sympy.symbols('x')  # noqa: F841
     coeff_list = []
     rmse_list = []
     f_list = []
