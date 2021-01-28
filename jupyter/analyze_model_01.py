@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 21, 2021
+LAST MODIFIED: Jan 28, 2021
 
 PURPOSE: Count the number of valid and number of invalid equations.
 
@@ -23,8 +23,7 @@ import json
 
 np.seterr('raise')
 
-file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
-# file_endname = '_epochs100_0'
+file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_100'
 data = pd.read_csv('test_output{}.csv'.format(file_endname)).values.flatten()
 print(data.shape)
 

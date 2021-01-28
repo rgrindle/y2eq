@@ -186,10 +186,11 @@ if __name__ == '__main__':
 
     ff_list = pd.read_csv('unique_ff_list.csv', header=None).values.flatten()
     np.random.shuffle(ff_list)
+    ff_list = ff_list[:1000]
     support = np.arange(0.1, 3.1, 0.1)
 
     dataset_parts = (None,)
-    dataset_size = {'train': 50000, 'test': 1000}
+    dataset_size = {'train': 100000, 'test': 1000}
     for dataset_type in ['train', 'test']:
         dataset_parts = get_dataset(ff_list=ff_list,
                                     support=support,
@@ -197,4 +198,4 @@ if __name__ == '__main__':
                                     dataset_size=dataset_size[dataset_type],
                                     other_dataset_inputs=dataset_parts[0])
 
-        save(*dataset_parts, save_name='_'+dataset_type+'_ff')
+        save(*dataset_parts, save_name='_'+dataset_type+'_ff1000_100000')

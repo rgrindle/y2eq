@@ -2,9 +2,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
-file_endname_list = ['_layers10_clip1_dropoutFalse_lr1e-4_1100',
-                     '_layers10_clip1_dropoutFalse_lr1e-4_1400',
-                     '_layers10_clip1_dropoutFalse_lr1e-4_1700']
+file_endname_list = ['_dataset_train_ff_batchsize2000',
+                     '_dataset_train_ff_batchsize2000_200']
 
 epoch_count = 0
 checkpoints = []

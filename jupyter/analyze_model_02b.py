@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 18, 2021
+LAST MODIFIED: Jan 28, 2021
 
 PURPOSE: Compute coefficients for valid equations found in
          analyze_model_01b.py
@@ -31,7 +31,7 @@ for key in valid_equations:
 
 # Get expected y-values
 device = torch.device('cpu')
-test_data = torch.load('dataset_test.pt', map_location=device)
+test_data = torch.load(os.path.join('..', 'datasets', 'dataset_test.pt'), map_location=device)
 # test_data = torch.load('test_data_int_comp.pt', map_location=device)
 
 y_true = np.array([d[0].tolist() for d in test_data])

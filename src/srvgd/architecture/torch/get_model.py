@@ -21,7 +21,7 @@ ENC_MAX_LENGTH = 30
 DEC_MAX_LENGTH = 67  # length of longest equation in terms of number of tokens
 
 
-def get_model(device, path='', load_weights=None, layers=None):
+def get_model(device, path='models', load_weights=None, layers=None):
 
     if layers is None:
         ENC_LAYERS = 10  # number of conv. blocks in encoder

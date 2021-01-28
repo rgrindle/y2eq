@@ -16,6 +16,8 @@ from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 import torch
 import numpy as np
 
+import os
+
 SEED = 1234
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -24,7 +26,7 @@ torch.backends.cudnn.deterministic = True
 
 
 def get_functional_forms(end_name):
-    dataset = torch.load('dataset{}.pt'.format(end_name),
+    dataset = torch.load(os.path.join('..', 'datasets', 'dataset{}.pt'.format(end_name)),
                          map_location=torch.device('cpu'))
     dataset_output_list = [d[1] for d in dataset]
     return [get_string(d.tolist()) for d in dataset_output_list]

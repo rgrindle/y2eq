@@ -74,7 +74,7 @@ model = get_model(device, 'cnn{}.pt'.format(file_endname))
 model.eval()
 
 # train_data = torch.load('dataset_train.pt', map_location=device)
-train_data = torch.load('train_data_int_comp.pt', map_location=device)
+train_data = torch.load(os.path.join('..', 'datasets', 'train_data_int_comp.pt'), map_location=device)
 
 predicted_data = []
 for obs in train_data:

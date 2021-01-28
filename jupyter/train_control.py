@@ -27,6 +27,7 @@ else:
 
 import argparse
 import random
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--checkpoint', type=str,
@@ -95,9 +96,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
 # train_data = torch.load('train_data_int_comp.pt')
-train_data = torch.load(args.dataset, map_location=device)
+train_data = torch.load(os.path.join('..', 'datasets', args.dataset), map_location=device)
 # test_data = torch.load('test_data_int_comp.pt')
-test_data = torch.load(args.dataset.replace('train', 'test'), map_location=device)
+test_data = torch.load(os.path.join('..', 'datasets', args.dataset.replace('train', 'test')), map_location=device)
 
 
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
@@ -111,10 +112,13 @@ if args.checkpoint is None:
 
 else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
-    model = get_model(device, load_weights='cnn{}.pt'.format(args.checkpoint), layers=args.layers)
+    model = get_model(device,
+                      path=os.path.join('..', 'models',
+                      load_weights='cnn{}.pt'.format(args.checkpoint),
+                      layers=args.layers)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    optimizer.load_state_dict(torch.load('optimizer{}.pt'.format(args.checkpoint),
-                                         map_location=device))
+    optimizer.load_state_dict(os.path.join('..', 'models', torch.load('optimizer{}.pt'.format(args.checkpoint)),
+                              map_location=device))
     print('done.')
 
 # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.1)
@@ -126,6 +130,7 @@ criterion = nn.CrossEntropyLoss(ignore_index=0)
 train(args.epochs, train_loader, valid_loader,
       model, optimizer, criterion,
       args.clip, noise_Y=False, sigma=0.1,
+      save_loc='models',
       save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.epochs))
 
 # test_loss = evaluate(model, test_loader, criterion)

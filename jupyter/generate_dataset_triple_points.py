@@ -17,6 +17,8 @@ import torch
 import numpy as np
 import pandas as pd
 
+import os
+
 SEED = 1234
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -28,7 +30,7 @@ def redefine_dataset_change_x(end_name, support):
     eqs = pd.read_csv('equations_with_coeff{}.csv'.format(end_name),
                       header=None).values.flatten()
 
-    dataset = torch.load('dataset{}.pt'.format(end_name),
+    dataset = torch.load(os.path.join('..', 'datasets', 'dataset{}.pt'.format(end_name)),
                          map_location=torch.device('cpu'))
     dataset_output_list = [d[1] for d in dataset]
     # func_forms = [get_string(d.tolist()) for d in dataset_output_list]

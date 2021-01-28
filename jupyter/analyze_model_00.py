@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 26, 2021
+LAST MODIFIED: Jan 28, 2021
 
 PURPOSE: Get output of trained NN on test dataset.
 
@@ -16,23 +16,22 @@ from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
 import torch
 import pandas as pd
 
+import os
+
 
 if __name__ == '__main__':
 
-    file_endname = '_dataset_train_ff_batchsize128_lr0.001_clip0.1_layers10_10'
-    # file_endname = '_epochs100_0'
+    file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_100'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = get_model(device,
+                      path=os.path.join('..', 'models'),
                       load_weights='cnn{}.pt'.format(file_endname))
     model.eval()
 
-    test_data = torch.load('dataset_test_ff.pt', map_location=device)
-    # test_data = torch.load('test_data_int_comp.pt', map_location=device)
+    test_data = torch.load(os.path.join('..', 'datasets', 'dataset_test_ff1000.pt'), map_location=device)
 
     predicted_data = []
     for i, obs in enumerate(test_data):
-        if i >= 1000:
-            break
 
         inputs, targets = obs
         predicted = translate_sentence(sentence=inputs,

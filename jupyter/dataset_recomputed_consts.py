@@ -17,9 +17,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from eqlearner.dataset.processing.tokenization import get_string
 
+import os
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-test_data = torch.load('test_data_int_comp.pt', map_location=device)
+test_data = torch.load(os.path.join('..', 'datasets', 'test_data_int_comp.pt'), map_location=device)
 
 x = np.arange(0.1, 3.1, 0.1)
 for i, t in enumerate(test_data):

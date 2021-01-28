@@ -37,7 +37,7 @@ def get_cdf(X):
     return p, X_sorted
 
 
-def plot_cdf(X, labels=True, **kwargs):
+def plot_cdf(X, labels=True, ymax='auto', **kwargs):
     """Use get_cdf to plot the CDF.
     Parameters
     ----------
@@ -55,8 +55,12 @@ def plot_cdf(X, labels=True, **kwargs):
 
     p, X = get_cdf(X)
 
-    plt.fill_between(X, len(X)*np.array(p),
-                     **kwargs)
+    if ymax == 'auto':
+        plt.fill_between(X, len(X)*np.array(p),
+                         **kwargs)
+    else:
+        assert type(ymax) == float
+        plt.fill_between(X, ymax*np.array(p), **kwargs)
 
     if labels:
         plt.ylabel('$Pr(X < x)$')

@@ -36,6 +36,7 @@ parser.add_argument('--checkpoint', type=str,
                          'use --checkpoint _model1 to continue training.')
 args = parser.parse_args()
 
+import os
 
 SEED = 1234
 random.seed(SEED)
@@ -75,8 +76,8 @@ def count_parameters(model):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
-train_data = torch.load('dataset_train_triple_points.pt', map_location=device)
-test_data = torch.load('dataset_test_triple_points.pt', map_location=device)
+train_data = torch.load(os.path.join('..', 'datasets', 'dataset_train_triple_points.pt'), map_location=device)
+test_data = torch.load(os.path.join('..', 'datasets', 'dataset_test_triple_points.pt'), map_location=device)
 
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
@@ -91,7 +92,7 @@ else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
     model = get_model(device, 'cnn{}.pt'.format(args.checkpoint))
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
-    optimizer.load_state_dict(torch.load('optimizer{}.pt'.format(args.checkpoint),
+    optimizer.load_state_dict(os.path.join('..', 'datasets', torch.load('optimizer{}.pt'.format(args.checkpoint)),
                                          map_location=device))
     print('done.')
 

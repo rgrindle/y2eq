@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 26, 2021
+LAST MODIFIED: Jan 28, 2021
 
 PURPOSE: Understand how untrained models behave.
 
@@ -15,10 +15,12 @@ from srvgd.architecture.torch.get_model import get_model
 import torch
 import pandas as pd
 
+import os
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = get_model(device,
                   layers=10)
-test_data = torch.load('dataset_test_ff.pt', map_location=device)
+test_data = torch.load(os.path.join('..', 'datasets', 'dataset_test_ff.pt'), map_location=device)
 
 predicted_data = []
 for i, obs in enumerate(test_data):
