@@ -54,6 +54,10 @@ parser.add_argument('--layers', type=int,
 parser.add_argument('--epochs', type=int,
                     help='Number of epochs to train for.',
                     default=100)
+parser.add_argument('--input_dim', type=int, choices=(1, 2),
+                    help='The number of inputs in the dataset. '
+                         'Indented for inputs include (x,y) or just '
+                         'y.')
 args = parser.parse_args()
 print(args)
 
@@ -107,17 +111,22 @@ print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=args.batch_size, valid_size=0.30)
 
 if args.checkpoint is None:
-    model = get_model(device, layers=args.layers)
+    model = get_model(device,
+                      INPUT_DIM=args.input_dim,
+                      ENC_LAYERS=args.layers,
+                      DEC_LAYERS=args.layers)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
     model = get_model(device,
-                      path=os.path.join('..', 'models',
+                      path=os.path.join('..', 'models'),
                       load_weights='cnn{}.pt'.format(args.checkpoint),
-                      layers=args.layers)
+                      ENC_LAYERS=args.layers,
+                      DEC_LAYERS=args.layers,
+                      INPUT_DIM=args.input_dim)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    optimizer.load_state_dict(os.path.join('..', 'models', torch.load('optimizer{}.pt'.format(args.checkpoint)),
+    optimizer.load_state_dict(torch.load(os.path.join('..', 'models', 'optimizer{}.pt'.format(args.checkpoint)),
                               map_location=device))
     print('done.')
 
@@ -127,11 +136,19 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 
 criterion = nn.CrossEntropyLoss(ignore_index=0)
 
+epochs_filename = args.epochs
+
+if args.checkpoint is not None:
+    underscores_i = [i for i, s in enumerate(args.checkpoint) if s == '_']
+    prev_epochs = int(args.checkpoint[underscores_i[-1]+1:])
+    epochs_filename += prev_epochs
+
+
 train(args.epochs, train_loader, valid_loader,
       model, optimizer, criterion,
       args.clip, noise_Y=False, sigma=0.1,
-      save_loc='models',
-      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.epochs))
+      save_loc=os.path.join('..', 'models'),
+      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, epochs_filename))
 
 # test_loss = evaluate(model, test_loader, criterion)
 
