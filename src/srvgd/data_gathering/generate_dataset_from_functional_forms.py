@@ -17,7 +17,7 @@ NOTES: Should the number of instances of each functional form
 TODO:
 """
 from generate_dataset import pad
-from tokenization_rg import tokenize_eq
+from srvgd.updated_eqlearner.tokenization_rg import tokenize_eq
 from srvgd.utils.normalize import normalize
 
 import torch
@@ -28,9 +28,9 @@ import re
 import os
 
 if torch.cuda.is_available():
-    from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
+    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetGPU as TensorDataset  # noqa: F401
 else:
-    from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
+    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
 def get_coeff(rand_interval):

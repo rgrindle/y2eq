@@ -12,9 +12,9 @@ TODO:
 """
 from eqlearner.dataset.univariate.datasetcreator import DatasetCreator
 # from eqlearner.dataset.univariate.equationtracker import EquationTracker
-from EquationTrackerRG import EquationTrackerRG as EquationTracker
-from EquationStructuresRG import EquationStructuresRG as EquationStructures
-from EqGeneratorRG import constant_adder_binomial, polynomial_single, Composition_single, Binomial_single, N_single
+from srvgd.updated_eqlearner.EquationTrackerRG import EquationTrackerRG as EquationTracker
+from srvgd.updated_eqlearner.EquationStructuresRG import EquationStructuresRG as EquationStructures
+from srvgd.updated_eqlearner.EqGeneratorRG import constant_adder_binomial, polynomial_single, Composition_single, Binomial_single, N_single
 import numpy as np
 from sympy import lambdify, sin, exp, log
 

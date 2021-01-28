@@ -23,7 +23,7 @@ import json
 
 np.seterr('raise')
 
-file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_100'
+file_endname = '_dataset_train_ff1000_100000_batchsize2000_lr0.0001_clip1_layers10_100'
 data = pd.read_csv('test_output{}.csv'.format(file_endname)).values.flatten()
 print(data.shape)
 

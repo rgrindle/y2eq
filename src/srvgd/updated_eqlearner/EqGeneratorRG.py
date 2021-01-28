@@ -11,7 +11,7 @@ NOTES: Original code here: https://github.com/SymposiumOrganization/EQLearner/bl
 
 TODO:
 """
-from EquationStructuresRG import EquationStructuresRG as EquationStructures
+from srvgd.updated_eqlearner.EquationStructuresRG import EquationStructuresRG as EquationStructures
 
 import bisect
 import numpy as np

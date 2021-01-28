@@ -9,63 +9,14 @@ NOTES:
 
 TODO:
 """
-from eqlearner.dataset.processing.tokenization import get_string
-from tokenization_rg import default_map
 from srvgd.architecture.torch.get_model import get_model
-from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
+from srvgd.updated_eqlearner.tensor_dataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
+from srvgd.utils.eval import translate_sentence
 
 import torch
-from torch.utils.data import DataLoader
-import numpy as np
 import pandas as pd
 
-import itertools
-
-def translate_sentence(sentence, model, device, max_len=100):
-
-    model.eval()
-
-    # if isinstance(sentence, str):
-    #     numerized_tokens = tokenize_eq(sentence)
-    #     # nlp = spacy.load('de')
-    #     # tokens = [token.text.lower() for token in nlp(sentence)]
-    # else:
-    #     # tokens = [token.lower() for token in sentence]
-    #     numerized_tokens = sentence
-
-    # Apply start and end tokens
-    # tokens = [src_field.init_token] + tokens + [src_field.eos_token]
-
-    # # Convert to integer representation of tokens
-    # src_indexes = [src_field.vocab.stoi[token] for token in tokens]
-
-    # src_tensor = torch.LongTensor(numerized_tokens).unsqueeze(0).to(device)
-    src_tensor = sentence.unsqueeze(0)
-
-    with torch.no_grad():
-        encoder_conved, encoder_combined = model.encoder(src_tensor)
-
-    mapping = default_map()
-    trg_indexes = [mapping['START']]
-
-    for i in range(max_len):
-
-        trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
-
-        with torch.no_grad():
-            output, attention = model.decoder(trg_tensor, encoder_conved, encoder_combined)
-
-        pred_token = output.argmax(2)[:, -1].item()
-
-        trg_indexes.append(pred_token)
-
-        if pred_token == mapping['END']:
-            break
-
-    trg_tokens = get_string(trg_indexes)
-
-    return trg_tokens, attention
-
+import os
 
 file_endname = '_layers10_clip1_dropoutFalse_lr1e-4_2000'
 # file_endname = '_epochs100_0'

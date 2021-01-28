@@ -12,7 +12,7 @@ NOTES: Modified from SeqSeqModel.ipynb
 
 TODO:
 """
-from DatasetCreatorRG import DatasetCreatorRG
+from srvgd.updated_eqlearner.DatasetCreatorRG import DatasetCreatorRG
 from get_points import is_enough_points
 from eqlearner.dataset.processing import tokenization
 
@@ -32,7 +32,7 @@ torch.backends.cudnn.deterministic = True
 # if torch.cuda.is_available():
 #     from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
 # else:
-from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
+from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
 def get_dataset(dataset_size, save_loc='',

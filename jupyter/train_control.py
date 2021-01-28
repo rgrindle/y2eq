@@ -21,9 +21,9 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np
 
 if torch.cuda.is_available():
-    from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
+    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetGPU as TensorDataset  # noqa: F401
 else:
-    from tensor_dataset import TensorDatasetCPU as TensorDataset  # noqa: F401
+    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 import argparse
 import random
