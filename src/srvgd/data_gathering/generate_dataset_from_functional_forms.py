@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 
 import re
+import os
 
 if torch.cuda.is_available():
     from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
@@ -170,15 +171,18 @@ def numpify(eq):
 
 
 def save(dataset_inputs, dataset_outputs, eq_with_coeff_list, save_name):
+    save_loc = os.path.join('..', '..', '..', 'datasets')
+
     inputs_tensor = torch.zeros(len(dataset_inputs), 30)
     for i, y in enumerate(dataset_inputs):
         inputs_tensor[i, :] = torch.Tensor(y)
 
     filename = 'equations_with_coeff'+save_name+'.csv'
-    pd.DataFrame(eq_with_coeff_list).to_csv(filename, index=False, header=None)
+    pd.DataFrame(eq_with_coeff_list).to_csv(os.path.join(save_loc, filename),
+                                            index=False, header=None)
 
     dataset = TensorDataset(inputs_tensor, pad(dataset_outputs))
-    torch.save(dataset, 'dataset'+save_name+'.pt')
+    torch.save(dataset, os.path.join(save_loc, 'dataset'+save_name+'.pt'))
 
 
 if __name__ == '__main__':
