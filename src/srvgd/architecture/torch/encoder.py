@@ -47,7 +47,6 @@ class Encoder(nn.Module):
         # pos = [0, 1, 2, 3, ..., src len - 1]
         # pos = [batch size, src len]
         # embed tokens and positions
-        src = torch.unsqueeze(src, dim=2)
 
         tok_embedded = ((self.tok_linear(src)))
         pos_embedded = self.pos_embedding(pos)
