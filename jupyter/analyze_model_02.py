@@ -11,9 +11,7 @@ NOTES: Requires 01_valid_eq....json exists. This
 
 TODO:
 """
-from srvgd.utils.eval import fit_eq, normalize, get_f, apply_coeffs, regression
-from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
-from eqlearner.dataset.processing.tokenization import get_string
+from srvgd.utils.eval import fit_eq, normalize, get_f
 
 import json
 import torch

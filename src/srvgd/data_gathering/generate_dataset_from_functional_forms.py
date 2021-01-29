@@ -21,16 +21,12 @@ from srvgd.updated_eqlearner.tokenization_rg import tokenize_eq
 from srvgd.utils.normalize import normalize
 
 import torch
+from torch.utils.data import TensorDataset
 import numpy as np
 import pandas as pd
 
 import re
 import os
-
-if torch.cuda.is_available():
-    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetGPU as TensorDataset  # noqa: F401
-else:
-    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
 def get_coeff(rand_interval):

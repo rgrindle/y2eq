@@ -11,9 +11,9 @@ NOTES:
 TODO:
 """
 from srvgd.utils.eval import get_f
-from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 import torch
+from torch.utils.data import TensorDataset
 import numpy as np
 import pandas as pd
 

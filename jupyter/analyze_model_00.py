@@ -11,7 +11,6 @@ TODO:
 """
 from srvgd.utils.eval import translate_sentence
 from srvgd.architecture.torch.get_model import get_model
-from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 import torch
 import pandas as pd

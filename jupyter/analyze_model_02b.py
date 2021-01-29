@@ -11,7 +11,6 @@ NOTES:
 TODO:
 """
 from srvgd.utils.eval import fit_eq, normalize
-from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 from eqlearner.dataset.processing.tokenization import get_string
 
 import json

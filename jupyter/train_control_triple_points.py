@@ -21,13 +21,10 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np
 
-if torch.cuda.is_available():
-    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetGPU as TensorDataset  # noqa: F401
-else:
-    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
-
 import argparse
 import random
+
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--checkpoint', type=str,
@@ -35,8 +32,6 @@ parser.add_argument('--checkpoint', type=str,
                          'Example: if you can cnn_model1.pt and optimizer_model1.pt '
                          'use --checkpoint _model1 to continue training.')
 args = parser.parse_args()
-
-import os
 
 SEED = 1234
 random.seed(SEED)

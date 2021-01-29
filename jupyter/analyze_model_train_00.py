@@ -10,7 +10,6 @@ NOTES:
 TODO:
 """
 from srvgd.architecture.torch.get_model import get_model
-from srvgd.updated_eqlearner.tensor_dataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 from srvgd.utils.eval import translate_sentence
 
 import torch

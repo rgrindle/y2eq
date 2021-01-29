@@ -11,7 +11,6 @@ NOTES: x in [0.1, 3.1)
 
 TODO:
 """
-from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset
 from srvgd.utils.eval import get_f, normalize
 
 import torch
@@ -65,12 +64,16 @@ if __name__ == '__main__':
 
     other_dataset_inputs = None
     for dataset_type in ['train', 'test']:
-        dataset_name = '_test_ff'
+        dataset_name = '_{}_ff'.format(dataset_type)
         eq_list = pd.read_csv(os.path.join(dataset_path, 'equations_with_coeff'+dataset_name+'.csv'),
                               header=None).values.flatten()
 
         original_dataset = torch.load(os.path.join(dataset_path, 'dataset'+dataset_name+'.pt'),
                                       map_location=device)
+        original_inputs = [d[0].tolist() for d in original_dataset]
         original_outputs = [d[1].tolist() for d in original_dataset]
-
-        rebuild_dataset_with_x(num_x_per_eq, eq_list, other_dataset_inputs)
+        # dataset = TD(torch.Tensor(original_inputs), torch.LongTensor(original_outputs))
+        # print(dataset[0])
+        # torch.save(dataset, os.path.join(dataset_path, 'dataset'+dataset_name+'.pt'))
+        # exit()
+        # rebuild_dataset_with_x(num_x_per_eq, eq_list, other_dataset_inputs)

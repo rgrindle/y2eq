@@ -17,6 +17,7 @@ from get_points import is_enough_points
 from eqlearner.dataset.processing import tokenization
 
 import torch
+from torch.utils.data import TensorDataset
 import numpy as np
 import pandas as pd
 from sympy import sin, log, exp, Symbol
@@ -28,11 +29,6 @@ np.random.seed(SEED)
 torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
-
-# if torch.cuda.is_available():
-#     from tensor_dataset import TensorDatasetGPU as TensorDataset  # noqa: F401
-# else:
-from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
 
 
 def get_dataset(dataset_size, save_loc='',

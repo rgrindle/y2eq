@@ -20,11 +20,6 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 import numpy as np
 
-if torch.cuda.is_available():
-    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetGPU as TensorDataset  # noqa: F401
-else:
-    from srvgd.updated_eqleaner.TensorDataset_rg import TensorDatasetCPU as TensorDataset  # noqa: F401
-
 import argparse
 import random
 import os
