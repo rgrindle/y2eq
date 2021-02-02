@@ -21,7 +21,7 @@ import pandas as pd
 import os
 
 # Get valid equations
-file_endname = '_dataset_train_ff1000_100000_batchsize2000_lr0.0001_clip1_layers10_100'
+file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
 # file_endname = '_epochs100_0'
 with open('01_valid_eq{}.json'.format(file_endname), 'r') as json_file:
     valid_equations = json.load(json_file)
@@ -34,7 +34,7 @@ for key in valid_equations:
 device = torch.device('cpu')
 # test_data = torch.load('dataset_test_ff.pt', map_location=device)
 # test_data = torch.load('test_data_int_comp.pt', map_location=device)
-eq_true = pd.read_csv(os.path.join('..', 'models', 'equations_with_coeff_test_ff1000_100000.csv'), header=None).values.flatten()
+eq_true = pd.read_csv(os.path.join('..', 'datasets', 'equations_with_coeff_test_ff.csv'), header=None).values.flatten()
 
 # y_true = np.array([d[0].tolist() for d in test_data])
 # ff_true = [get_string(d[1].tolist())[5:-3] for d in test_data]
