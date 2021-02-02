@@ -26,8 +26,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
 model = get_model(device,
                   path='../models/',
-                  load_weights='cnn{}.pt'.format(file_endname),
-                  layers=10)
+                  load_weights='cnn{}.pt'.format(file_endname))
 
 with open('00_y_normalized_list.json', 'r') as json_file:
     y_list = json.load(json_file)

@@ -24,7 +24,7 @@ import json
 np.random.seed(0)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-eq_list = pd.read_csv('../jupyter/equations_with_coeff_test_ff.csv', header=None).values.flatten()
+eq_list = pd.read_csv('../datasets/equations_with_coeff_test.csv', header=None).values.flatten()
 
 x_list = []
 y_normalized_list = []
@@ -36,7 +36,7 @@ for eq in eq_list:
     x_list.append(x.tolist())
     y = f(x)
     y_unnormalized_list.append(y.tolist())
-    y_normalized_list.append(normalize(y).tolist())
+    y_normalized_list.append(normalize(y)[:, None].tolist())
 
 with open('00_x_list.json', 'w') as file:
     json.dump(x_list, file)
