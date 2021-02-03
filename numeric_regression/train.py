@@ -43,8 +43,7 @@ def train(model, dataset, batch_size, epochs, index):
 
 def make_dataset(f, x_train, x_test):
     y_train, min_data, scale_ = normalize(f(x_train))
-    indices = np.random.choice(len(x_train), len(x_train), replace=False)
-    train_dataset = [x_train[indices, None], y_train[indices, None]]
+    train_dataset = [x_train[:, None], y_train[:, None]]
     y_test = normalize(f(x_test), min_data, scale_)[0]
     test_dataset = [x_test[:, None], y_test[:, None]]
     return train_dataset, test_dataset, min_data, scale_
@@ -68,12 +67,12 @@ if __name__ == '__main__':
 
     import argparse
 
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser()
     parser.add_argument('index', type=int,
                         help='index in dataset to choose which equation to do.')
     args = parser.parse_args()
 
-    eqs = pd.read_csv('../../../jupyter/equations_with_coeff_test.csv', header=None).iloc[:, 0].values
+    eqs = pd.read_csv('../datasets/equations_with_coeff_test_ff1000.csv', header=None).iloc[:, 0].values
 
     batch_size = 1
 
