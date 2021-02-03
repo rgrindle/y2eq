@@ -218,7 +218,7 @@ def regression(f_hat, y, num_coeffs, support):
         return RMSE(y_hat, y)
 
     res = minimize(loss, np.ones(num_coeffs), args=(support,), bounds=[(-3, 3)]*num_coeffs, method='L-BFGS-B')
-    return res.x, res.fun
+    return res.x, loss(res.x, support)
 
 
 def normalize(y, min_=None, scale=None, return_params=False):
