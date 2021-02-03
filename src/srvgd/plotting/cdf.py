@@ -32,8 +32,7 @@ def get_cdf(X):
     """
 
     X_sorted = sorted(X)
-    n = len(X)
-    p = [i/n for i, x in enumerate(X)]
+    p = np.arange(len(X))/len(X)
     return p, X_sorted
 
 
@@ -56,11 +55,10 @@ def plot_cdf(X, labels=True, ymax='auto', **kwargs):
     p, X = get_cdf(X)
 
     if ymax == 'auto':
-        plt.fill_between(X, len(X)*np.array(p),
-                         **kwargs)
+        plt.step(X, len(X)*np.array(p), where='pre', **kwargs)
     else:
         assert type(ymax) == float
-        plt.fill_between(X, ymax*np.array(p), **kwargs)
+        plt.step(X, ymax*np.array(p), where='pre', **kwargs)
 
     if labels:
         plt.ylabel('$Pr(X < x)$')
