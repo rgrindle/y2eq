@@ -16,8 +16,7 @@ import matplotlib.pyplot as plt
 
 import os
 
-path = os.path.join('..', 'src', 'srvgd', 'numerical_regression', 'rmse')
-df = pd.read_csv(os.path.join(path, 'all_data.csv'))
+df = pd.read_csv(os.path.join('rmse', 'all_data.csv'))
 
 for key in df:
     plt.close('all')
