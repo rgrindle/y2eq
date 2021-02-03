@@ -23,7 +23,7 @@ import pandas as pd
 import json
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
+file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900'
 model = get_model(device,
                   path='../models/',
                   load_weights='cnn{}.pt'.format(file_endname))
