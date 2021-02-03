@@ -11,7 +11,7 @@ NOTES: Requires 01_valid_eq....json exists. This
 
 TODO:
 """
-from srvgd.utils.eval import fit_eq, normalize, get_f
+from srvgd.utils.eval import fit_eq, normalize, get_f, RMSE
 
 import json
 import torch
@@ -21,7 +21,7 @@ import pandas as pd
 import os
 
 # Get valid equations
-file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
+file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900'
 # file_endname = '_epochs100_0'
 with open('01_valid_eq{}.json'.format(file_endname), 'r') as json_file:
     valid_equations = json.load(json_file)
@@ -34,7 +34,7 @@ for key in valid_equations:
 device = torch.device('cpu')
 # test_data = torch.load('dataset_test_ff.pt', map_location=device)
 # test_data = torch.load('test_data_int_comp.pt', map_location=device)
-eq_true = pd.read_csv(os.path.join('..', 'datasets', 'equations_with_coeff_test_ff.csv'), header=None).values.flatten()
+eq_true = pd.read_csv(os.path.join('..', 'datasets', 'equations_with_coeff_test_ff1000.csv'), header=None).values.flatten()
 
 # y_true = np.array([d[0].tolist() for d in test_data])
 # ff_true = [get_string(d[1].tolist())[5:-3] for d in test_data]
@@ -46,8 +46,8 @@ eq_true = pd.read_csv(os.path.join('..', 'datasets', 'equations_with_coeff_test_
 #     del valid_equations[keys[index]]
 #     index += 1
 
-x_int = np.arange(0.1, 3.1, 0.1)[:, None]
-x_ext = np.arange(3.1, 6.1, 0.1)[:, None]
+x_int = np.arange(0.1, 3.1, 0.1)
+x_ext = np.arange(3.1, 6.1, 0.1)
 
 y_true = []
 true_f_list = []
@@ -56,7 +56,7 @@ for i in valid_equations:
     eq = eq_true[int(i)]
     f = get_f(eq)
     true_f_list.append(f)
-    y = f(x_int).flatten()
+    y = f(x_int)
     y_true.append(y)
     if np.any(np.isnan(f(x_ext))):
         # print(eq)
@@ -85,7 +85,7 @@ print('Number of true equations with nan on extrapolation region', count)
 
 
 # y_list = [y_true[int(i)] for i in valid_equations]
-_, pred_rmse_list, pred_f_list = fit_eq(eq_list=valid_equations.values(),
+_, pred_rmse_list, pred_f_list = fit_eq(eq_list=list(valid_equations.values()),
                                         support=x_int,
                                         y_list=y_true)
 
@@ -100,9 +100,12 @@ for true_f, pred_f in zip(true_f_list, pred_f_list):
     # _, pred_min_, pred_scale = normalize(pred_f(x_int), return_params=True)
     _, true_min_, true_scale = normalize(true_f(x_int), return_params=True)
 
-    true_y = normalize(true_f(x_ext), true_min_, true_scale).flatten()
-    pred_y = normalize(pred_f(x_ext), true_min_, true_scale).flatten()
-    ext_rmse = np.sqrt(np.mean(np.power(true_y-pred_y, 2)))
+    true_y = normalize(true_f(x_ext), true_min_, true_scale)
+    pred_y = normalize(pred_f(x_ext), true_min_, true_scale)
+
+    # true_y = true_f(x_ext).flatten()
+    # pred_y = pred_f(x_ext).flatten()
+    ext_rmse = RMSE(true_y, pred_y)
     ext_rmse_list.append(ext_rmse)
 print(ext_rmse_list)
 pd.DataFrame([list(valid_equations.keys()), pred_rmse_list, ext_rmse_list]).T.to_csv('02_rmse{}.csv'.format(file_endname), index=False, header=['index', 'interpolated_rmse', 'extraplolated_rmse'])

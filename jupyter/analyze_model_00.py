@@ -20,14 +20,14 @@ import os
 
 if __name__ == '__main__':
 
-    file_endname = '_layers10_clip1_dropoutTrue_lr1e-4_no_duplicates_660'
+    file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = get_model(device,
                       path=os.path.join('..', 'models'),
                       load_weights='cnn{}.pt'.format(file_endname))
     model.eval()
 
-    test_data = torch.load(os.path.join('..', 'datasets', 'dataset_test_ff.pt'), map_location=device)
+    test_data = torch.load(os.path.join('..', 'datasets', 'dataset_test_ff1000.pt'), map_location=device)
     # from eqlearner.dataset.processing.tokenization import get_string
     # import numpy as np
     # ff_list = [get_string(d[1].tolist())[5:-3] for d in test_data]
