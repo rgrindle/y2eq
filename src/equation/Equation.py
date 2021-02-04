@@ -20,7 +20,7 @@ import numpy as np
 class Equation:
 
     def __init__(self, eq_str: str,
-                 x=None,
+                 x=np.arange(0.1, 3.1, 0.1),
                  num_coeffs: int = 0,
                  apply_coeffs: bool = True):
 
@@ -30,16 +30,29 @@ class Equation:
         if apply_coeffs:
             self.apply_coeffs()
         else:
-            self.num_coeffs = num_coeffs
+            self.num_coeffs = 0
 
         self.get_f()
 
     def get_f(self):
+        for p in ['sin', 'exp', 'log']:
+            self.eq_str = self.eq_str.replace(p, 'np.'+p)
+
         if 'c[' in self.eq_str:
-            lambda_str_beg = 'lambda c, x:'
+            lambda_str_beg = 'lambda c, x: '
         else:
-            lambda_str_beg = 'lambda x:'
+            lambda_str_beg = 'lambda x: '
+
         self.f = eval(lambda_str_beg+self.eq_str)
+        return self.f
+
+    def is_eq_valid(self):
+        try:
+            self.get_f()
+            y = self.f(self.x)
+            return type(y) != np.ufunc
+        except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
+            return False
 
     def apply_coeffs(self):
         pass
@@ -58,5 +71,5 @@ class Equation:
                        method='L-BFGS-B')
 
         self.coeffs = res.x
-        self.rmse = res.fun
+        self.rmse = loss(res.x, self.x)
         return self.coeffs, self.rmse
