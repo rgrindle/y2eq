@@ -43,7 +43,7 @@ for i, (ff, y, x, y_ext) in enumerate(zip(ff_list, y_list, x_list, y_ext_list)):
         coeffs, rmse_int = regression(f_hat, y, num_coeffs, np.array(x))
 
         _, true_min_, true_scale = normalize(y, return_params=True)
-        y_ext_true_norm = normalize(y, true_min_, true_scale)
+        y_ext_true_norm = normalize(y_ext, true_min_, true_scale)
         y_ext_pred_norm = normalize(f_hat(c=coeffs, x=x_ext), true_min_, true_scale)
 
         rmse_ext = RMSE(y_ext_true_norm, y_ext_pred_norm)

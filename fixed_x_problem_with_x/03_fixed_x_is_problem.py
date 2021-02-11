@@ -15,7 +15,13 @@ if __name__ == '__main__':
     rmse_data_random_y = pd.read_csv('../fixed_x_problem/02_rmse.csv').values.flatten()
 
     # random x - NN with x, y
-    rmse_data_random_xy = pd.read_csv('02_rmse.csv').values.flatten()
+    rmse_data_random_xy200 = pd.read_csv('02_rmse_200.csv').values.flatten()
+
+    # random x - NN with x, y
+    rmse_data_random_xy450 = pd.read_csv('02_rmse_450.csv').values.flatten()
+
+    # gridify
+    rmse_data_gridify = pd.read_csv('../gridify/rmse/all_data.csv')['ext_normalized_rmse'].values
 
     # make figure
     plt.figure()
@@ -25,12 +31,20 @@ if __name__ == '__main__':
     rmse_data_random_y = rmse_data_random_y[~np.isnan(rmse_data_random_y)]
     rmse_data_random_y = rmse_data_random_y[~np.isinf(rmse_data_random_y)]
 
-    rmse_data_random_xy = rmse_data_random_xy[~np.isnan(rmse_data_random_xy)]
-    rmse_data_random_xy = rmse_data_random_xy[~np.isinf(rmse_data_random_xy)]
+    rmse_data_random_xy200 = rmse_data_random_xy200[~np.isnan(rmse_data_random_xy200)]
+    rmse_data_random_xy200 = rmse_data_random_xy200[~np.isinf(rmse_data_random_xy200)]
 
-    plot_cdf(rmse_data_fixed, labels=False, ymax=1., color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$')
-    plot_cdf(rmse_data_random_y, labels=False, ymax=1., color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=y)')
-    plot_cdf(rmse_data_random_xy, labels=False, ymax=1., color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=x,y)')
+    rmse_data_random_xy450 = rmse_data_random_xy450[~np.isnan(rmse_data_random_xy450)]
+    rmse_data_random_xy450 = rmse_data_random_xy450[~np.isinf(rmse_data_random_xy450)]
+
+    rmse_data_gridify = rmse_data_gridify[~np.isnan(rmse_data_gridify)]
+    rmse_data_gridify = rmse_data_gridify[~np.isinf(rmse_data_gridify)]
+
+    plot_cdf(rmse_data_fixed, labels=False, ymax=1., color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$ (epochs=900,input=y)')
+    # plot_cdf(rmse_data_random_y, labels=False, ymax=1., color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=900,input=y)')
+    # plot_cdf(rmse_data_random_xy200, labels=False, ymax=1., color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=200,input=x,y)')
+    plot_cdf(rmse_data_random_xy450, labels=False, ymax=1., color='C5', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=450,input=x,y)')
+    # plot_cdf(rmse_data_gridify, labels=False, ymax=1., color='C7', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=900,gridify)')
 
     plt.xlabel('RMSE on extrapolation region ($x = \\left[3.1, 3.2, \\cdots, 6.0\\right]$)')
     plt.ylabel('Cumulative counts')
@@ -40,9 +54,12 @@ if __name__ == '__main__':
     plt.savefig('03_figure_fixed_x_is_problem_ymax1.pdf')
 
     plt.figure()
-    plot_cdf(rmse_data_fixed, labels=False, color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$')
-    plot_cdf(rmse_data_random_y, labels=False, color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=y)')
-    plot_cdf(rmse_data_random_xy, labels=False, color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=x,y)')
+    plot_cdf(rmse_data_fixed, labels=False, color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$ (epochs=900,input=y)')
+    # plot_cdf(rmse_data_random_y, labels=False, color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=900,input=y)')
+    # plot_cdf(rmse_data_random_xy200, labels=False, color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=200,input=x,y)')
+    plot_cdf(rmse_data_random_xy450, labels=False, color='C5', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=450,input=x,y)')
+    # plot_cdf(rmse_data_gridify, labels=False, color='C7', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=900,gridify)')
+
     plt.xlabel('RMSE on extrapolation region ($x = \\left[3.1, 3.2, \\cdots, 6.0\\right]$)')
     plt.ylabel('Cumulative counts')
     plt.ylim([0, 1000])
@@ -50,28 +67,14 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.savefig('03_figure_fixed_x_is_problem_ymaxauto.pdf')
 
-    # fixed x
-    print(len(rmse_data_fixed))
-    rmse_data_fixed = [r for r in rmse_data_fixed if 0 <= r <= 3]
-    print(len(rmse_data_fixed))
-    plot_cdf(rmse_data_fixed, labels=False, color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$')
-
-    # random x
-    print(len(rmse_data_random_y))
-    rmse_data_random_y = [r for r in rmse_data_random_y if 0 <= r <= 3]
-    print(len(rmse_data_random_y))
-    plot_cdf(rmse_data_random_xy, labels=False, color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=y)')
-
-    print(len(rmse_data_random_xy))
-    rmse_data_random_xy = [r for r in rmse_data_random_xy if 0 <= r <= 3]
-    print(len(rmse_data_random_xy))
-    plot_cdf(rmse_data_random_xy, labels=False, color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=x,y)')
-
     # make figure x in [0, 3]
     plt.figure()
-    plot_cdf(rmse_data_fixed, labels=False, color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$')
-    plot_cdf(rmse_data_random_y, labels=False, color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=y)')
-    plot_cdf(rmse_data_random_xy, labels=False, color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (input=x,y)')
+    plot_cdf(rmse_data_fixed, labels=False, color='#8B94FC', label='$x = \\left[0.1, 0.2, \\cdots, 3.0\\right]$ (epochs=900,input=y)')
+    # plot_cdf(rmse_data_random_y, labels=False, color='#F49F1C', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=900,input=y)')
+    # plot_cdf(rmse_data_random_xy200, labels=False, color='C9', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=200,input=x,y)')
+    plot_cdf(rmse_data_random_xy450, labels=False, color='C5', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=450,input=x,y)')
+    # plot_cdf(rmse_data_gridify, labels=False, color='C7', label='$x \\sim $uniform$\\left([0.1, 3.1)\\right)$ (epochs=900,gridify)')
+
     plt.xlabel('RMSE on extrapolation region ($x = \\left[3.1, 3.2, \\cdots, 6.0\\right]$)')
     plt.ylabel('Cumulative counts')
     plt.xlim([0, 3])
