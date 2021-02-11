@@ -15,30 +15,33 @@ from architecture_1d import model
 from tensorflow.keras.callbacks import ModelCheckpoint
 import numpy as np
 from tensorflow import keras
+import torch
 
 import os
 
 
-def train(model, dataset, batch_size, epochs, index):
+def train(model, dataset, dataset_name, batch_size, epochs, index):
     model_name = 'function_approximation_index{}'.format(index)
+
+    os.makedirs(os.path.join('models', dataset_name), exist_ok=True)
+
     model_cb = ModelCheckpoint(save_best_only=True,
-                               filepath=os.path.join('models', 'model_'+model_name),
-                               monitor='val_loss')
+                               filepath=os.path.join('models', dataset_name, 'model_'+model_name),
+                               monitor='loss')
 
     weights_cb = ModelCheckpoint(save_best_only=True,
                                  save_weights_only=True,
-                                 filepath=os.path.join('models', 'weights_'+model_name),
-                                 monitor='val_loss')
+                                 filepath=os.path.join('models', dataset_name, 'weights_'+model_name),
+                                 monitor='loss')
 
     model.compile(optimizer='Adam', loss='mse')
     model.fit(dataset[0], dataset[1],
               batch_size=batch_size,
               epochs=epochs,
-              validation_split=0.1,
+              validation_split=0.0,
               shuffle=True,
               callbacks=[model_cb, weights_cb])
-
-    return keras.models.load_model(os.path.join('models', 'model_'+model_name))
+    return keras.models.load_model(os.path.join('models', dataset_name, 'model_'+model_name))
 
 
 def make_dataset(f, x_train, x_test):
@@ -70,15 +73,29 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('index', type=int,
                         help='index in dataset to choose which equation to do.')
+    parser.add_argument('--dataset', type=str, default='',
+                        help='Datatset to use. Example: _ff1000 -> dataset_test_ff1000')
     args = parser.parse_args()
 
-    eqs = pd.read_csv('../datasets/equations_with_coeff_test_ff1000.csv', header=None).iloc[:, 0].values
+    eq_file = '../datasets/equations_with_coeff_test{}.csv'.format(args.dataset)
+    eq_file = eq_file.replace('_with_x', '')
+    eqs = pd.read_csv(eq_file, header=None).iloc[:, 0].values
 
     batch_size = 1
 
     # make a dataset
     # np.random.seed(0)
-    x_train = np.arange(0.1, 3.1, 0.1)
+
+    if 'with_x' in args.dataset:
+        dataset_with_x = torch.load(os.path.join('..', 'datasets', 'dataset_test{}.pt'.format(args.dataset)),
+                                    map_location=torch.device('cpu'))
+        dataset_inputs = [d[0].numpy() for d in dataset_with_x]
+        x_train_normalized = dataset_inputs[args.index][:, 0]
+        x_train = x_train_normalized*(3.1-0.1)+0.1
+
+    else:
+        x_train = np.arange(0.1, 3.1, 0.1)
+
     x_test = np.arange(3.1, 6.1, 0.1)
     # f = lambda x: 3*x*np.sin(5*x)+7
     eq = eqs[args.index].replace('sin', 'np.sin').replace('log', 'np.log').replace('exp', 'np.exp')
@@ -86,6 +103,7 @@ if __name__ == '__main__':
     train_dataset, test_dataset, min_data, scale_ = make_dataset(f, x_train, x_test)
 
     trained_model = train(model, train_dataset,
+                          dataset_name=args.dataset,
                           batch_size=batch_size,
                           epochs=1000,
                           index=args.index)
@@ -120,8 +138,8 @@ if __name__ == '__main__':
     test_unscaled_rmse = np.sqrt(np.mean(np.power(test_unscaled_y_test_pred-test_unscaled_test_dataset, 2)))
     print('test_unscaled_rmse', test_unscaled_rmse)
 
-    os.makedirs('rmse', exist_ok=True)
+    os.makedirs(os.path.join('rmse', args.dataset), exist_ok=True)
 
-    with open('rmse/{}.txt'.format(args.index), 'w') as f:
+    with open('rmse/{}/{}.txt'.format(args.dataset, args.index), 'w') as f:
         f.write('train_rmse,train_unscaled_rmse,test_rmse,test_unscaled_rmse\n')
         f.write('{},{},{},{}'.format(train_rmse, train_unscaled_rmse, test_rmse, test_unscaled_rmse))
