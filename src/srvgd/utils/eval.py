@@ -9,7 +9,7 @@ NOTES:
 
 TODO:
 """
-from eqlearner.dataset.processing.tokenization import get_string
+from eqlearner.dataset.processing.tokenization import reverse_map
 from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
 
@@ -41,23 +41,20 @@ def get_onehot_from_softmax(softmax):
     return np.array(onehots)
 
 
-# def get_string(string, mapping=None, sym_mapping=None):
-#     """Modified version of
-#     eqlearner.dataset.processing.tokenization.get_string.
-#     This version places 'END' and removes everything after it."""
-#     if not mapping:
-#         tmp = default_map()
-#         mapping = reverse_map(tmp, symbols=sym_mapping)
-#     mapping_string = mapping.copy()
-#     mapping_string[12] = 'START'
-#     mapping_string[13] = 'END'
-#     curr = ''.join([mapping_string[digit] for digit in string])
-#     if len(string) < 2:
-#         return RuntimeError
-#     if len(string) == 2:
-#         return 0
-#     end = curr.find('END')
-#     return curr[:end]
+def get_string(string, mapping=None, sym_mapping=None):
+    if not mapping:
+        tmp = default_map()
+        mapping = reverse_map([tmp], symbols=sym_mapping)
+    mapping_string = mapping.copy()
+    mapping_string[12] = "START"
+    mapping_string[13] = "END"
+    mapping_string[0] = ''
+    curr = "".join([mapping_string[digit] for digit in string])
+    if len(string) < 2:
+        return RuntimeError
+    if len(string) == 2:
+        return 0
+    return curr
 
 
 def decode(output):
