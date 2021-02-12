@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 26, 2021
+LAST MODIFIED: Feb 12, 2021
 
 PURPOSE: Confirm that fixed x values used during training
          is a problem for the current system. Step 0 (this
