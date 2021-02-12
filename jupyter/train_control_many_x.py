@@ -131,7 +131,7 @@ else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
     model = get_model(device,
                       path=os.path.join('..', 'models'),
-                      load_weights='cnn{}.pt'.format(args.checkpoint),
+                      load_weights='xy2eq{}.pt'.format(args.checkpoint),
                       ENC_LAYERS=args.layers,
                       DEC_LAYERS=args.layers,
                       INPUT_DIM=args.input_dim)
