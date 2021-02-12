@@ -25,7 +25,7 @@ def train(num_epochs, train_loader, valid_loader,
         train_loss = train_one_epoch(model, train_loader, optimizer,
                                      criterion, clip, noise_Y=False,
                                      sigma=0.05, with_x=with_x)
-        valid_loss = evaluate(model, valid_loader, criterion)
+        valid_loss = evaluate(model, valid_loader, criterion, with_x=with_x)
         history['train_loss'].append(train_loss)
         history['valid_loss'].append(valid_loss)
         end_time = time.time()

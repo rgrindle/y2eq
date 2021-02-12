@@ -1,7 +1,7 @@
 import torch
 
 
-def evaluate(model, iterator, criterion):
+def evaluate(model, iterator, criterion, with_x=False):
     model.eval()
     epoch_loss = 0
 
@@ -9,6 +9,15 @@ def evaluate(model, iterator, criterion):
         for i, batch in enumerate(iterator):
             src = batch[0]
             trg = batch[1]
+
+            if with_x:
+                # pick 30 random points
+                # and remove x
+                print(src.shape)
+                indices = torch.randperm(src.size(1))[:30]
+                print(indices)
+                src = src[:, sorted(indices), 1:]
+                print(src.shape)
 
             output, _ = model(src, trg[:, :-1])
 
