@@ -136,7 +136,7 @@ else:
                       DEC_LAYERS=args.layers,
                       INPUT_DIM=args.input_dim)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
-    optimizer.load_state_dict(torch.load(os.path.join('..', 'models', 'optimizer{}.pt'.format(args.checkpoint)),
+    optimizer.load_state_dict(torch.load(os.path.join('..', 'models', 'xy2eq_optimizer{}.pt'.format(args.checkpoint)),
                               map_location=device))
     print('done.')
 

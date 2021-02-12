@@ -11,7 +11,8 @@ import os
 def train(num_epochs, train_loader, valid_loader,
           model, optimizer, criterion,
           clip, noise_Y=False, sigma=0.1,
-          save_loc='', save_end_name=''):
+          save_loc='', save_end_name='',
+          with_x=False):
     best_valid_loss = float('inf')
     torch.set_num_threads(1)
     history = {'train_loss': [], 'valid_loss': []}
@@ -23,7 +24,7 @@ def train(num_epochs, train_loader, valid_loader,
         start_time = time.time()
         train_loss = train_one_epoch(model, train_loader, optimizer,
                                      criterion, clip, noise_Y=False,
-                                     sigma=0.05)
+                                     sigma=0.05, with_x=with_x)
         valid_loss = evaluate(model, valid_loader, criterion)
         history['train_loss'].append(train_loss)
         history['valid_loss'].append(valid_loss)
@@ -47,7 +48,7 @@ def train(num_epochs, train_loader, valid_loader,
 
 
 def train_one_epoch(model, iterator, optimizer, criterion,
-                    clip, noise_Y=False, sigma=0.1):
+                    clip, noise_Y=False, sigma=0.1, with_x=False):
     model.train()
 
     epoch_loss = 0
@@ -61,6 +62,15 @@ def train_one_epoch(model, iterator, optimizer, criterion,
         else:
             src = batch[0]
             trg = batch[1]
+
+        if with_x:
+            # pick 30 random points
+            # and remove x
+            print(src.shape)
+            indices = torch.randperm(src.size(1))[:30]
+            print(indices)
+            src = src[:, sorted(indices), 1:]
+            print(src.shape)
 
         optimizer.zero_grad()
         output, _ = model(src, trg[:, :-1])

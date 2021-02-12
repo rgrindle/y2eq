@@ -18,6 +18,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data import TensorDataset
 import numpy as np
 
 import argparse
@@ -90,7 +91,6 @@ def dataset_loader(train_dataset, test_dataset, batch_size=1024, valid_size=0.20
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 
@@ -99,6 +99,7 @@ train_data = torch.load(os.path.join('..', 'datasets', args.dataset), map_locati
 # test_data = torch.load('test_data_int_comp.pt')
 test_data = torch.load(os.path.join('..', 'datasets', args.dataset.replace('train', 'test')), map_location=device)
 
+assert 'with_x' not in args.dataset
 
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
@@ -143,7 +144,8 @@ train(args.epochs, train_loader, valid_loader,
       model, optimizer, criterion,
       args.clip, noise_Y=False, sigma=0.1,
       save_loc=os.path.join('..', 'models'),
-      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, epochs_filename))
+      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, epochs_filename),
+      with_x='with_1000x' in args.dataset)
 
 # test_loss = evaluate(model, test_loader, criterion)
 
