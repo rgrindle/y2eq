@@ -148,7 +148,7 @@ train(args.epochs, train_loader, valid_loader,
       args.clip, noise_Y=False, sigma=0.1,
       save_loc=os.path.join('..', 'models'),
       save_end_name='_all1000_just_y_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, epochs_filename),
-      with_x='with_1000x' in args.dataset)
+      with_x=('with_1000x' in args.dataset) or ('1000fixed' in args.dataset))
 
 # test_loss = evaluate(model, test_loader, criterion)
 

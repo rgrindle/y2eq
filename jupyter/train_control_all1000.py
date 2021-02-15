@@ -110,7 +110,7 @@ train_data = torch.load(os.path.join('..', 'datasets', args.dataset), map_locati
 # test_data = torch.load('test_data_int_comp.pt')
 test_data = torch.load(os.path.join('..', 'datasets', args.dataset.replace('train', 'test')), map_location=device)
 
-if 'with_x' not in args.dataset and 'with_1000x' not in args.dataset:
+if 'with_x' not in args.dataset and 'with_1000x' not in args.dataset and '1000fixed' not in args.dataset:
     x = (np.arange(0.1, 3.1, 0.1)-0.1)/3.0
     train_data = put_x_in_dataset(x, train_data, device)
     test_data = put_x_in_dataset(x, test_data, device)
