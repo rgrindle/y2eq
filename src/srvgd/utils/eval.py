@@ -214,7 +214,8 @@ def regression(f_hat, y, num_coeffs, support):
         # return RMSE(normalize(y_hat), y)
         return RMSE(y_hat, y)
 
-    res = minimize(loss, np.ones(num_coeffs), args=(support,), bounds=[(-3, 3)]*num_coeffs, method='L-BFGS-B')
+    res = minimize(loss, np.ones(num_coeffs), args=(support,), bounds=[(-3, 3)]*num_coeffs,
+                   method='BFGS')
     return res.x, loss(res.x, support)
 
 
