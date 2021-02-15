@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Feb 12, 2021
+LAST MODIFIED: Feb 15, 2021
 
 PURPOSE: Compare y2eq-fixed-different with y2eq-different-different.
 
@@ -40,8 +40,8 @@ plt.ylabel('Cumulative counts')
 plt.legend()
 plt.xscale('log')
 plt.ylim([0, 1000])
-plt.savefig('011_fig1_interpolation.pdf')
+plt.savefig('018_fig1_interpolation.pdf')
 
 plt.xscale('linear')
 plt.xlim([0, 3])
-plt.savefig('011_fig1_zoom_interpolation.pdf')
+plt.savefig('018_fig1_zoom_interpolation.pdf')
