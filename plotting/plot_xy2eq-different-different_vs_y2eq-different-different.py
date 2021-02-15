@@ -23,11 +23,11 @@ def remove_nan_inf(data):
 
 
 # y2eq-different-different
-rmse_y2eq_different_different = pd.read_csv('../eval_y2eq-different-different/02_rmse.csv', header=None).values
+rmse_y2eq_different_different = pd.read_csv('../eval_y2eq-different-different/02_rmse.csv')['rmse_ext'].values
 rmse_y2eq_different_different = remove_nan_inf(rmse_y2eq_different_different)
 
 # y2eq-fixed-different
-rmse_xy2eq_different_different = pd.read_csv('../eval_xy2eq-different-different/02_rmse.csv', header=None).values
+rmse_xy2eq_different_different = pd.read_csv('../eval_xy2eq-different-different/02_rmse.csv')['rmse_ext'].values
 rmse_xy2eq_different_different = remove_nan_inf(rmse_xy2eq_different_different)
 
 # make figure
