@@ -53,4 +53,4 @@ for i, (ff, y, x, y_ext) in enumerate(zip(ff_list, y_list, x_list, y_ext_list)):
     rmse_list.append(rmse_ext)
     print(rmse_list[-1])
 
-pd.DataFrame(rmse_list).to_csv('02_rmse_with_1000x.csv', index=False, header=None)
+pd.DataFrame(rmse_list).to_csv('02_rmse.csv', index=False, header=None)

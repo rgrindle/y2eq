@@ -24,10 +24,9 @@ import numpy as np
 import json
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-file_endname = '_dataset_train_ff1000_with_1000x_batchsize2000_lr0.0001_clip1_layers10_1000'
 model = get_model(device,
                   path='../models/',
-                  load_weights='cnn{}.pt'.format(file_endname),
+                  load_weights='xy2eq_dataset_train_ff1000_with_1000x_batchsize2000_lr0.0001_clip1_layers10_900.pt',
                   INPUT_DIM=2)
 
 with open('00_x_list.json', 'r') as json_file:
