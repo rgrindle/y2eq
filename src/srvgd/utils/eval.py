@@ -279,9 +279,9 @@ def translate_sentence(sentence, model, device, max_len=100):
     model.eval()
 
     if type(sentence) != torch.Tensor:
-        src_tensor = torch.Tensor(sentence)
+        src_tensor = torch.Tensor(sentence).to(device)
     else:
-        src_tensor = sentence
+        src_tensor = sentence.to(device)
 
     src_tensor = src_tensor.unsqueeze(0)
 
