@@ -26,7 +26,7 @@ np.random.seed(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 eq_list = pd.read_csv('../datasets/equations_with_coeff_test_ff1000.csv', header=None).values.flatten()
 
-x_ext = np.linspace(3.1, 6, 1000)
+x_ext = np.arange(3.1, 6.1, 0.1)
 
 x_list = []
 y_normalized_list = []

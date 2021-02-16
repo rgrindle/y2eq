@@ -26,6 +26,7 @@ np.random.seed(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 eq_list = pd.read_csv('../datasets/equations_with_coeff_test_ff1000.csv', header=None).values.flatten()
 
+x_int = np.arange(0.1, 3.1, 0.003)
 x_ext = np.arange(3.1, 6.1, 0.1)
 
 x_list = []
@@ -34,10 +35,8 @@ y_unnormalized_list = []
 y_ext_unnormalized_list = []
 for eq in eq_list:
     f = get_f(eq)
-    x = np.random.uniform(0.1, 3.1, 1000)
-    x.sort()
-    x_list.append(x.tolist())
-    y = f(x)
+    x_list.append(x_int.tolist())
+    y = f(x_int)
     y_unnormalized_list.append(y.tolist())
     y_normalized_list.append(normalize(y)[:, None].tolist())
     y_ext_unnormalized_list.append(f(x_ext).tolist())
