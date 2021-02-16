@@ -26,7 +26,7 @@ import json
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = get_model(device,
                   path='../models/',
-                  load_weights='xy2eq_all1000_dataset_train_ff1000_batchsize32_lr0.0001_clip1_layers10_300.pt',
+                  load_weights='xy2eq_all1000_dataset_train_ff1000_1000fixed_batchsize32_lr0.0001_clip1_layers10_300.pt',
                   INPUT_DIM=2,
                   ENC_MAX_LENGTH=1000)
 

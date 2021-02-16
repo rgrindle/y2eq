@@ -14,28 +14,37 @@ NOTES: If NN outputs padding (0) only then the "equation"
 
 TODO:
 """
-from srvgd.utils.eval import translate_sentence
+from srvgd.utils.eval import translate_sentence, normalize
 from srvgd.architecture.torch.get_model import get_model
 
 import torch
 import pandas as pd
+import numpy as np
 
 import json
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = get_model(device,
                   path='../models/',
-                  load_weights='cnn_all1000_just_y_dataset_train_ff1000_1000fixed_batchsize32_lr0.0001_clip1_layers10_300.pt',
-                  ENC_MAX_LENGTH=1000)
+                  load_weights='xy2eq_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900.pt',
+                  INPUT_DIM=2)
+
+with open('00_x_list.json', 'r') as json_file:
+    x_list = json.load(json_file)
 
 with open('00_y_normalized_list.json', 'r') as json_file:
     y_list = json.load(json_file)
 
+x_min_ = 0.1
+x_scale = 1./(3.1-0.1)
 
 predicted_data = []
-for i, y in enumerate(y_list):
+for i, (x, normalized_y) in enumerate(zip(x_list, y_list)):
 
-    predicted = translate_sentence(sentence=y,
+    normalized_x = normalize(np.array(x), min_=x_min_, scale=x_scale)
+    sentence = np.vstack((normalized_x, normalized_y)).T.tolist()
+
+    predicted = translate_sentence(sentence=sentence,
                                    model=model,
                                    device=device,
                                    max_len=67)[0]
