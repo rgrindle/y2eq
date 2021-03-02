@@ -9,12 +9,12 @@ if __name__ == '__main__':
     import os
 
     # numerical regression data
-    path = os.path.join('..', 'numeric_regression', 'rmse', 'ff1000')
-    numerical_reg_data = pd.read_csv(os.path.join(path, 'all_data_ff1000.csv'))['test_rmse'].values
+    path = os.path.join('..', 'numeric_regression', 'rmse', '_ff1000')
+    numerical_reg_data = pd.read_csv(os.path.join(path, 'all_data.csv'))['test_rmse'].values
     plot_cdf(numerical_reg_data, color='#CF6875', alpha=0.75, label='numeric regression')
 
     # gp data
-    file = os.path.join('..', 'src', 'gp', 'gp_data', 'all_rmse_data.csv')
+    file = os.path.join('..', 'src', 'gp', 'gp_data', 'ff1000_100', 'all_rmse_data.csv')
     gp_data = pd.read_csv(file)['test_normalized_rmse'].values
     plot_cdf(gp_data, color='C8', alpha=0.75, label='genetic programming')
 
