@@ -47,10 +47,10 @@ def beam_search(beam_size, encoder_input, model,
                       encoder_states=encoder_states)]
 
     while not np.all([beam.is_done() for beam in beam_list]):
-        new_beams_list = []
+        new_beam_list = []
         for beam in beam_list:
             if beam.is_done():
-                new_beams_list.append(beam)
+                new_beam_list.append(beam)
                 continue
 
             best_outputs, best_indices = beam.eval_decoder()
@@ -59,12 +59,17 @@ def beam_search(beam_size, encoder_input, model,
                 new_beam = copy.deepcopy(beam)
                 new_beam.sequence.append(index)
                 new_beam.update_prob(output)
-                new_beams_list.append(new_beam)
+                new_beam_list.append(new_beam)
 
-        log_prob_list = [n.log_prob for n in new_beams_list]
-        beam_list = [new_beams_list[i] for i in np.argsort(log_prob_list)[:beam_size]]
+        log_prob_list = [n.log_prob for n in new_beam_list]
+        beam_list = [new_beam_list[i] for i in np.argsort(log_prob_list)[::-1][:beam_size]]
 
-    return [get_string(beam.sequence) for beam in beam_list]
+    # Get most likely sentence by normalizing probabilities
+    # according to sentence length.
+    log_prob_list = [n.log_prob/len(n.sequence) for n in beam_list]
+    best_index = np.argmax(log_prob_list)
+
+    return get_string(beam_list[best_index].sequence)
 
 
 class Beam:
@@ -94,7 +99,7 @@ class Beam:
 
     def update_prob(self, p):
         assert 0 <= p <= 1
-        self.log_prob += -np.log(p)
+        self.log_prob += np.log(p)
 
     def is_done(self):
         mapping = default_map()
@@ -108,7 +113,7 @@ if __name__ == '__main__':
 
     # get model
     model = get_model(torch.device('cpu'),
-                      path='../models/',
+                      path='../../../models/',
                       load_weights='cnn_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900.pt')
 
     # get input
@@ -116,10 +121,9 @@ if __name__ == '__main__':
     y = x**4 + x
     y = normalize(y)
 
-    pred_outputs = beam_search(beam_size=10,
+    pred_outputs = beam_search(beam_size=2,
                                encoder_input=torch.Tensor(y),
                                model=model)
 
-    print('equations found by beam search')
-    for p in pred_outputs:
-        print(p)
+    print('equation found by beam search')
+    print(pred_outputs)
