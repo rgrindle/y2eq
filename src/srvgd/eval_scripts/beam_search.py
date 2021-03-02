@@ -12,6 +12,7 @@ TODO:
 from srvgd.utils.eval import get_string, default_map, normalize
 
 import torch
+import numpy as np
 from scipy.special import softmax
 
 import copy
@@ -89,7 +90,7 @@ class Beam:
         prev_tensor = torch.LongTensor(self.sequence).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
-            output, attention = model.decoder(prev_tensor, *self.encoder_states)
+            output, attention = self.model.decoder(prev_tensor, *self.encoder_states)
             output = output.numpy()[0, -1]
             output = softmax(output)
             sort_indices = np.argsort(output)[::-1]
