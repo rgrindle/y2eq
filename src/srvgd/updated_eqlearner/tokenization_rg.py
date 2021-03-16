@@ -18,7 +18,8 @@ from io import BytesIO
 
 def default_map():
     default_map = {'x': 1, 'sin': 2, 'exp': 3, 'log': 4, '(': 5, ')': 6, '**': 7, '*': 8, '+': 9,
-                   '/': 10, 'E': 11, 'START': 12, 'END': 13, 'sqrt': 14, '-': 15}
+                   '/': 10, 'E': 11, 'START': 12, 'END': 13, 'sqrt': 14, '-': 15,
+                   'x0': 16, 'x1': 17}
     max_val = max(list(default_map.values()))
     numbers = {str(n): max_val+n for n in range(1, 10)}
     default_map = {**default_map, **numbers}
