@@ -1,9 +1,9 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Feb 16, 2021
+LAST MODIFIED: Mar 16, 2021
 
-PURPOSE: Compare y2eq-fixed-different-30 with y2eq-fixed-fixed-30.
+PURPOSE: Compare y2eq-fixed-different-30 with y2eq-fixed-different-1000.
 
 NOTES:
 
@@ -14,7 +14,6 @@ from srvgd.plotting.cdf import plot_cdf
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import scipy.stats
 
 
 def remove_nan_inf(data):
@@ -28,9 +27,9 @@ def remove_nan_inf(data):
 rmse_y2eq_fixed_different_30_ = pd.read_csv('../eval_y2eq-fixed-different/02_rmse_105.csv')
 rmse_y2eq_fixed_different_30 = remove_nan_inf(rmse_y2eq_fixed_different_30_)
 
-# y2eq-fixed-fixed-30
-rmse_y2eq_fixed_fixed_30_ = pd.read_csv('../eval_y2eq-fixed-fixed/02_rmse_105.csv')
-rmse_y2eq_fixed_fixed_30 = remove_nan_inf(rmse_y2eq_fixed_fixed_30_)
+# y2eq-fixed-different-1000
+rmse_y2eq_fixed_different_1000_ = pd.read_csv('../eval_y2eq-fixed-different-1000/02_rmse_105.csv')
+rmse_y2eq_fixed_different_1000 = remove_nan_inf(rmse_y2eq_fixed_different_1000_)
 
 
 def make_figure(extrap):
@@ -47,7 +46,7 @@ def make_figure(extrap):
     for ax in axes:
         plt.sca(ax)
         plot_cdf(rmse_y2eq_fixed_different_30[key], labels=False, color='#8B94FC', linestyle='dashed', linewidth=1, label='y2eq-fixed-different-30')
-        plot_cdf(rmse_y2eq_fixed_fixed_30[key], labels=False, color='#8B94FC', linestyle='solid', linewidth=1, label='y2eq-fixed-fixed-30')
+        plot_cdf(rmse_y2eq_fixed_different_1000[key], labels=False, color='#8B94FC', linestyle='solid', linewidth=1, label='y2eq-fixed-different-1000')
 
     plt.sca(axes[1])
     plt.xlabel(xlabel)
@@ -67,24 +66,7 @@ def make_figure(extrap):
 
 # make figure
 make_figure(extrap=False)
-plt.savefig('027.pdf')
+plt.savefig('029_interp.pdf')
 
 make_figure(extrap=True)
-plt.savefig('03_the_problem.pdf')
-
-
-def replace_nan_with_inf(data):
-    data = np.array(data)
-    nan_indices = np.isnan(data)
-    num_nan = np.sum(nan_indices)
-    data[nan_indices] = [np.inf]*num_nan
-    return data
-
-
-rmse_y2eq_fixed_fixed_30_ = replace_nan_with_inf(rmse_y2eq_fixed_fixed_30_['rmse_ext'])
-rmse_y2eq_fixed_different_30_ = replace_nan_with_inf(rmse_y2eq_fixed_different_30_['rmse_ext'])
-
-results = scipy.stats.mannwhitneyu(rmse_y2eq_fixed_fixed_30_,
-                                   rmse_y2eq_fixed_different_30_,
-                                   alternative='less')
-print(results)
+plt.savefig('029_extrap.pdf')

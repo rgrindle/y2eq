@@ -23,11 +23,11 @@ def remove_nan_inf(data):
 
 
 # y2eq-different-different-1000
-rmse_y2eq_different_different_1000 = pd.read_csv('../../eval_y2eq-different-different-1000/02_rmse.csv', header=None).values
+rmse_y2eq_different_different_1000 = pd.read_csv('../../eval_y2eq-different-different-1000/02_rmse_1000.csv', header=None).values
 rmse_y2eq_different_different_1000 = remove_nan_inf(rmse_y2eq_different_different_1000)
 
 # y2eq-fixed-different-1000
-rmse_y2eq_fixed_different_1000 = pd.read_csv('../../eval_y2eq-fixed-different-1000/02_rmse.csv', header=None).values
+rmse_y2eq_fixed_different_1000 = pd.read_csv('../../eval_y2eq-fixed-different-1000/02_rmse_1000.csv', header=None).values
 rmse_y2eq_fixed_different_1000 = remove_nan_inf(rmse_y2eq_fixed_different_1000)
 
 # make figure
@@ -40,9 +40,9 @@ plt.ylabel('Cumulative counts')
 plt.legend()
 plt.xscale('log')
 plt.ylim([0, 1000])
-# plt.savefig('015_fig1.pdf')
+plt.savefig('014_fig1.pdf')
 
 plt.xscale('linear')
 plt.xlim([0, 3])
-# plt.savefig('015_fig1_zoom.pdf')
-plt.show()
+plt.savefig('014_fig1_zoom.pdf')
+# plt.show()
