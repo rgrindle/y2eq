@@ -57,11 +57,13 @@ class Equation:
     def apply_coeffs(self):
         pass
 
-    def place_exact_coeffs(self, coeffs):
+    def place_exact_coeffs(self, coeffs, remove_np=True):
         assert len(coeffs) == self.num_coeffs
         eq_placed_coeffs = self.eq_str
         for i, ci in enumerate(coeffs):
             eq_placed_coeffs = eq_placed_coeffs.replace('c[{}]'.format(i), str(ci))
+        if remove_np:
+            eq_placed_coeffs = eq_placed_coeffs.replace('np.', '')
         return eq_placed_coeffs
 
     def fit(self, y):
