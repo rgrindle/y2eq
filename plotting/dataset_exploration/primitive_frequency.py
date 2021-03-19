@@ -132,6 +132,7 @@ for key in ff_list:
     # each functional form.
     token_counts_per_ff[key] = [count_tokens(ff) for ff in unique_ff_list[key]]
     token_counts_total[key] = sum_dict(*token_counts_per_ff[key])
+    print(key, len(unique_ff_list[key]))
     token_counts_total_normalied[key] = {token: token_counts_total[key][token]/len(unique_ff_list[key]) for token in token_counts_total[key]}
 
     # Get complexity of functional forms
