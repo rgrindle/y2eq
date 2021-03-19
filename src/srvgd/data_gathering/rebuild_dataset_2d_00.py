@@ -120,16 +120,18 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     dataset_path = os.path.join('..', '..', '..', 'datasets')
-    eq_list = pd.read_csv(os.path.join(dataset_path, 'equations_with_coeff_train_ff1000.csv'),
-                          header=None).values.flatten()
 
-    eq_2d_list = []
-    for i, eq in enumerate(eq_list):
-        stripped_eq_list = strip_x(eq)
-        eq_2d = place_x(stripped_eq_list,
-                        x_choices=('x[0]', 'x[1]'))
-        eq_2d_list.append(eq_2d)
+    for dataset_type in ['train', 'test']:
+        eq_list = pd.read_csv(os.path.join(dataset_path, 'equations_with_coeff_{}_ff1000.csv'.format(dataset_type)),
+                              header=None).values.flatten()
 
-    pd.DataFrame(eq_2d_list).to_csv(os.path.join(dataset_path, 'equations_with_coeff_train_ff1000_2d.csv'),
-                                    header=None,
-                                    index=False)
+        eq_2d_list = []
+        for i, eq in enumerate(eq_list):
+            stripped_eq_list = strip_x(eq)
+            eq_2d = place_x(stripped_eq_list,
+                            x_choices=('x[0]', 'x[1]'))
+            eq_2d_list.append(eq_2d)
+
+        pd.DataFrame(eq_2d_list).to_csv(os.path.join(dataset_path, 'equations_with_coeff_{}_ff1000_2d.csv'.format(dataset_type)),
+                                        header=None,
+                                        index=False)
