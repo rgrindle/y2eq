@@ -57,6 +57,13 @@ class Equation:
     def apply_coeffs(self):
         pass
 
+    def place_exact_coeffs(self, coeffs):
+        assert len(coeffs) == self.num_coeffs
+        eq_placed_coeffs = self.eq_str
+        for i, ci in enumerate(coeffs):
+            eq_placed_coeffs = eq_placed_coeffs.replace('c[{}]'.format(i), str(ci))
+        return eq_placed_coeffs
+
     def fit(self, y):
         assert self.x is not None, 'x not specified'
         assert self.num_coeffs > 0, 'num_coeffs must be > 0'
