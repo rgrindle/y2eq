@@ -67,9 +67,7 @@ def train_one_epoch(model, iterator, optimizer, criterion,
             # pick 30 random points
             # and remove x
             print(src.shape)
-            indices = torch.randperm(src.size(1))[:30]
-            print(indices)
-            src = src[:, sorted(indices), 1:]
+            src = src[:, :, 1:]
             print(src.shape)
 
         optimizer.zero_grad()

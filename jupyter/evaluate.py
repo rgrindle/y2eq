@@ -14,9 +14,7 @@ def evaluate(model, iterator, criterion, with_x=False):
                 # pick 30 random points
                 # and remove x
                 print(src.shape)
-                indices = torch.randperm(src.size(1))[:30]
-                print(indices)
-                src = src[:, sorted(indices), 1:]
+                src = src[:, :, 1:]
                 print(src.shape)
 
             output, _ = model(src, trg[:, :-1])

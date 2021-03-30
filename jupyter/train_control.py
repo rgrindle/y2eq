@@ -37,7 +37,7 @@ parser.add_argument('--dataset', type=str,
                     default='dataset_train.pt')
 parser.add_argument('--batch_size', type=int,
                     help='The batch size to use during training.',
-                    default=2000)
+                    default=32)
 parser.add_argument('--lr', type=float,
                     help='Learning rate used by Adam',
                     default=0.0001)
@@ -99,8 +99,6 @@ train_data = torch.load(os.path.join('..', 'datasets', args.dataset), map_locati
 # test_data = torch.load('test_data_int_comp.pt')
 test_data = torch.load(os.path.join('..', 'datasets', args.dataset.replace('train', 'test')), map_location=device)
 
-assert 'with_x' not in args.dataset
-
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 
@@ -110,7 +108,8 @@ if args.checkpoint is None:
     model = get_model(device,
                       INPUT_DIM=args.input_dim,
                       ENC_LAYERS=args.layers,
-                      DEC_LAYERS=args.layers)
+                      DEC_LAYERS=args.layers,
+                      OUTPUT_DIM=24)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 else:
@@ -145,7 +144,7 @@ train(args.epochs, train_loader, valid_loader,
       args.clip, noise_Y=False, sigma=0.1,
       save_loc=os.path.join('..', 'models'),
       save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, epochs_filename),
-      with_x='with_1000x' in args.dataset)
+      with_x='with_x' in args.dataset)
 
 # test_loss = evaluate(model, test_loader, criterion)
 
