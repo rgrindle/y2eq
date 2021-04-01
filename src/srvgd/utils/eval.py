@@ -9,10 +9,9 @@ NOTES:
 
 TODO:
 """
-from srvgd.updated_eqlearner.tokenization_rg import get_eq_string
+from srvgd.updated_eqlearner.tokenization_rg import get_eq_string, token_map, token_map_2d
 from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
-from srvgd.updated_eqlearner.tokenization_rg import token_map
 
 import torch
 from scipy.optimize import minimize
@@ -208,7 +207,8 @@ def is_eq_valid(eq_str, x=np.arange(0.1, 3.1, 0.1)):
         return False
 
 
-def translate_sentence(sentence, model, device, max_len=100):
+def translate_sentence(sentence, model, device, max_len=100,
+                       two_d=False):
 
     model.eval()
 
@@ -222,7 +222,10 @@ def translate_sentence(sentence, model, device, max_len=100):
     with torch.no_grad():
         encoder_conved, encoder_combined = model.encoder(src_tensor)
 
-    mapping = token_map()
+    if two_d:
+        mapping = token_map_2d
+    else:
+        mapping = token_map
     trg_indexes = [mapping['START']]
 
     for i in range(max_len):
@@ -239,7 +242,7 @@ def translate_sentence(sentence, model, device, max_len=100):
         if pred_token == mapping['END']:
             break
 
-    trg_tokens = get_eq_string(trg_indexes)
+    trg_tokens = get_eq_string(trg_indexes, two_d)
 
     return trg_tokens, attention
 

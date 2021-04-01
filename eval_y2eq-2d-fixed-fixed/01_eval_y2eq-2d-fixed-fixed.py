@@ -41,7 +41,8 @@ for i, y in enumerate(y_list):
     predicted = translate_sentence(sentence=y,
                                    model=model,
                                    device=device,
-                                   max_len=67)[0]
+                                   max_len=67,
+                                   two_d=True)[0]
     predicted_data.append(predicted[5:-3])
     # print('.', flush=True, end='')
     print(i, predicted_data[-1])

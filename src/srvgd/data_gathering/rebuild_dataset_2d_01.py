@@ -14,7 +14,6 @@ TODO:
 """
 from srvgd.utils.normalize import normalize
 from equation.EquationInfix import EquationInfix
-from srvgd.utils.eval import get_f
 from get_2d_grid import get_2d_grid
 from srvgd.updated_eqlearner.tokenization_rg import tokenize_eq
 
@@ -65,7 +64,7 @@ def rebuild_dataset_with_x(eq_list, num_points):
                             count += 1
                             dataset_inputs.append(inp)
                             ff = ff.replace('x[0]', 'x0').replace('x[1]', 'x1')
-                            dataset_outputs.append(tokenize_eq(ff))
+                            dataset_outputs.append(tokenize_eq(ff, two_d=True))
                             accepted = True
                             print('ACCEPTED!')
                             print('')
