@@ -13,7 +13,8 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import get_f, normalize
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import get_f
 from srvgd.eval_scripts.order_2d import order_2d
 from plot2eq.data_gathering.get_2d_grid import get_2d_grid
 

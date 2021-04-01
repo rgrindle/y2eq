@@ -14,7 +14,8 @@ NOTES: Empty strings as "equations" may happen if there are
 
 TODO:
 """
-from srvgd.utils.eval import RMSE, normalize
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import RMSE
 from plot2eq.equation.EquationInfix import EquationInfix
 from plot2eq.data_gathering.get_2d_grid import get_2d_grid
 

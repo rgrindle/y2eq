@@ -10,7 +10,8 @@ NOTES: gridified means x = [0.1, 0.2, ..., 3.0]
 
 TODO:
 """
-from srvgd.utils.eval import translate_sentence, get_f, normalize, RMSE
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import translate_sentence, get_f, RMSE
 from srvgd.architecture.torch.get_model import get_model
 from equation.EquationInfix import EquationInfix
 

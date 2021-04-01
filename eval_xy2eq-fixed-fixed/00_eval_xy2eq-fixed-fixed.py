@@ -13,7 +13,8 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import get_f, normalize
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import get_f
 
 import torch
 import pandas as pd

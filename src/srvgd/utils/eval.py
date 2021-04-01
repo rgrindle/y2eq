@@ -168,22 +168,11 @@ def RMSE(y, y_hat):
 def regression(f_hat, y, num_coeffs, support):
     def loss(c, x):
         y_hat = f_hat(c, x).flatten()
-        # return RMSE(normalize(y_hat), y)
         return RMSE(y_hat, y)
 
     res = minimize(loss, np.ones(num_coeffs), args=(support,), bounds=[(-3, 3)]*num_coeffs,
                    method='L-BFGS-B')
     return res.x, loss(res.x, support)
-
-
-def normalize(y, min_=None, scale=None, return_params=False):
-    if min_ is None:
-        min_ = np.min(y)
-        scale = 1./(np.max(y)-min_)
-    if return_params:
-        return (y-min_)*scale, min_, scale
-    else:
-        return (y-min_)*scale
 
 
 def fit_eq(eq_list, support, y_list):

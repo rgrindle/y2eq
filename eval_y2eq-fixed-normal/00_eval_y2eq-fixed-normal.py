@@ -14,7 +14,7 @@ NOTES:
 TODO:
 """
 from equation.EquationInfix import EquationInfix
-from srvgd.utils.eval import normalize
+from srvgd.utils.normalize import normalize
 from srvgd.data_gathering.get_normal_x import get_normal_x
 
 import torch

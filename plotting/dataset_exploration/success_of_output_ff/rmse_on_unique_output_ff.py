@@ -10,7 +10,9 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import regression, normalize, get_f, apply_coeffs, RMSE, is_eq_valid
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import regression, get_f, apply_coeffs, RMSE, is_eq_valid
+
 import pandas as pd
 import numpy as np
 

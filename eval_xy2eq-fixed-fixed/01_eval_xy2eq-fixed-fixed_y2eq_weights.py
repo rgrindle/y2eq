@@ -14,7 +14,8 @@ NOTES: If NN outputs padding (0) only then the "equation"
 
 TODO:
 """
-from srvgd.utils.eval import translate_sentence, normalize
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import translate_sentence
 from srvgd.architecture.torch.get_model import get_model
 
 import torch

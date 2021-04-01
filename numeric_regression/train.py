@@ -10,6 +10,7 @@ NOTES:
 
 TODO: Separate plotting from training.
 """
+from srvgd.utils.normalize import normalize, unnormalize
 from architecture_1d import model
 
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -45,23 +46,11 @@ def train(model, dataset, dataset_name, batch_size, epochs, index):
 
 
 def make_dataset(f, x_train, x_test):
-    y_train, min_data, scale_ = normalize(f(x_train))
+    y_train, min_data, scale_ = normalize(f(x_train), return_params=True)
     train_dataset = [x_train[:, None], y_train[:, None]]
-    y_test = normalize(f(x_test), min_data, scale_)[0]
+    y_test = normalize(f(x_test), min_data, scale_)
     test_dataset = [x_test[:, None], y_test[:, None]]
     return train_dataset, test_dataset, min_data, scale_
-
-
-def normalize(data, min_data=None, scale_=None):
-    if min_data is None or scale_ is None:
-        min_data = np.min(data)
-        max_data = np.max(data)
-        scale_ = 1./(max_data-min_data)
-    return (data-min_data)*scale_, min_data, scale_
-
-
-def unnormalize(data, min_data, scale_):
-    return data/scale_+min_data
 
 
 if __name__ == '__main__':

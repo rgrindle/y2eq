@@ -9,7 +9,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import normalize
+from srvgd.utils.normalize import normalize
 from srvgd.updated_eqlearner.tokenization_rg import token_map, get_eq_string
 
 import torch

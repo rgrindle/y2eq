@@ -11,7 +11,8 @@ NOTES: x in [0.1, 3.1)
 
 TODO:
 """
-from srvgd.utils.eval import get_f, normalize
+from srvgd.utils.normalize import normalize
+from srvgd.utils.eval import get_f
 
 import torch
 from torch.utils.data import TensorDataset
