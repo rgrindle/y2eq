@@ -15,6 +15,7 @@ from srvgd.plotting.cdf import plot_cdf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.stats import mannwhitneyu
 
 
 for int_ext_key in ['rmse_int', 'rmse_ext']:
@@ -35,9 +36,9 @@ for int_ext_key in ['rmse_int', 'rmse_ext']:
             plot_cdf(y2eq[key], labels=False, label='y2eq-fixed-'+key)
 
     if 'int' in int_ext_key:
-        xlabel = 'RMSE on interpolation region ($x \\in [0.1, 3.1)$)'
+        xlabel = 'RMSE on interpolation region ($x = [0.1, 0.2, \\cdots, 3.1)$)'
     else:
-        xlabel = 'RMSE on extrapolation region ($x \\in [3.1, 6.1)$)'
+        xlabel = 'RMSE on extrapolation region ($x = [3.1, 3.2, \\cdots, 6.1)$)'
 
     plt.sca(axes[1])
     plt.xlabel(xlabel)
@@ -55,3 +56,8 @@ for int_ext_key in ['rmse_int', 'rmse_ext']:
     plt.subplots_adjust(wspace=0.03, left=0.053, right=0.99, top=0.98)
 
     plt.savefig('plot_y2eq_normal_tests_{}.pdf'.format(int_ext_key))
+
+    results = mannwhitneyu(y2eq['fixed'],
+                           y2eq['normal (mu and sigma)'],
+                           alternative='less')
+    print(key, results)
