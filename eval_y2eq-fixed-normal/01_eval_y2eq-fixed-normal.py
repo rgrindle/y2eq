@@ -28,7 +28,7 @@ model = get_model(device,
                   path='../models/',
                   load_weights='cnn{}.pt'.format(file_endname))
 
-with open('00_y_normalized_list.json', 'r') as json_file:
+with open('00_y_input_list.json', 'r') as json_file:
     y_list = json.load(json_file)
 
 
