@@ -10,7 +10,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import get_string
+from srvgd.updated_eqlearner.tokenization_rg import get_eq_string
 from plot_bar_zordered import plot_bar_zordered
 
 import torch
@@ -105,7 +105,7 @@ dataset = torch.load('../../datasets/{}.pt'.format(dataset_name),
 y2eq_outputs = pd.read_csv('../../eval_y2eq-fixed-fixed/01_predicted_ff.csv', header=None).values.flatten().tolist()
 xy2eq_outputs = pd.read_csv('../../eval_xy2eq-fixed-fixed/01_predicted_ff.csv', header=None).values.flatten().tolist()
 
-ff_list = {'dataset': [get_string(d[1].tolist())[5:-3] for d in dataset],
+ff_list = {'dataset': [get_eq_string(d[1].tolist())[5:-3] for d in dataset],
            'y2eq': y2eq_outputs,
            'xy2eq': xy2eq_outputs}
 

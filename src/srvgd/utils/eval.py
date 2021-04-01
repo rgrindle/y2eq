@@ -9,9 +9,10 @@ NOTES:
 
 TODO:
 """
-from eqlearner.dataset.processing.tokenization import reverse_map
+from srvgd.updated_eqlearner.tokenization_rg import get_eq_string
 from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
+from srvgd.updated_eqlearner.tokenization_rg import default_map
 
 import torch
 from scipy.optimize import minimize
@@ -41,29 +42,13 @@ def get_onehot_from_softmax(softmax):
     return np.array(onehots)
 
 
-def get_string(string, mapping=None, sym_mapping=None):
-    if not mapping:
-        tmp = default_map()
-        mapping = reverse_map([tmp], symbols=sym_mapping)
-    mapping_string = mapping.copy()
-    mapping_string[12] = "START"
-    mapping_string[13] = "END"
-    mapping_string[0] = ''
-    curr = "".join([mapping_string[digit] for digit in string])
-    if len(string) < 2:
-        return RuntimeError
-    if len(string) == 2:
-        return 0
-    return curr
-
-
 def decode(output):
     onehots = get_onehot_from_softmax(output)
 
     eq_str_list = []
     for obs in onehots:
         eq_num_list = [onehot2token[tuple(onehot)] for onehot in obs]
-        eq_str = get_string([t for t in eq_num_list if t != 0])
+        eq_str = get_eq_string([t for t in eq_num_list if t != 0])
         eq_str_list.append(eq_str)
     return np.array(eq_str_list)
 
@@ -103,9 +88,6 @@ def eval_model(model, inputs, support):
 
 def load_model(model_name):
     return keras.models.load_model(os.path.join('..', '..', '..', 'models', 'model_'+model_name))
-    # trained_model = keras.models.load_model(os.path.join('models', 'model_'+model_name))
-    # test_model.set_weights(trained_model.get_weights())
-    # return test_model
 
 
 def pad(x):
@@ -183,31 +165,6 @@ def RMSE(y, y_hat):
     return np.sqrt(np.mean(np.power(y-y_hat, 2)))
 
 
-# def regression(f_hat, y, num_coeffs, support):
-#     def loss(c, x):
-#         y_hat = f_hat(c, x)
-#         return RMSE(normalize(y_hat), y)
-
-#     bestever = cma.optimization_tools.BestSolution()
-#     for popsize in [100]:
-#         es = cma.CMAEvolutionStrategy(np.ones(num_coeffs),
-#                                       0.5,
-#                                       {'popsize': popsize,
-#                                        'verb_append': bestever.evalsall})
-
-#         while not es.stop():
-#             solutions = es.ask()
-#             es.tell(solutions, [loss(c=s, x=support) for s in solutions])
-#             es.disp()
-
-#         bestever.update(es.best)
-
-#         if bestever.f < 1e-8:  # global optimum was hit
-#             break
-
-#     return bestever.x, bestever.f
-
-
 def regression(f_hat, y, num_coeffs, support):
     def loss(c, x):
         y_hat = f_hat(c, x).flatten()
@@ -249,11 +206,7 @@ def fit_eq(eq_list, support, y_list):
             f_str = f_str.replace('c[{}]'.format(i), str(coeffs[i]))
         f_hat_fixed_coeffs = get_f(f_str)
         f_list.append(f_hat_fixed_coeffs)
-        # import matplotlib.pyplot as plt
-        # plt.plot(support, f_list[-1](support), '.-', label='pred')
-        # plt.plot(support, y, '.-', label='true')
-        # plt.legend()
-        # plt.show()
+
     return coeff_list, rmse_list, f_list
 
 
@@ -264,15 +217,6 @@ def is_eq_valid(eq_str, x=np.arange(0.1, 3.1, 0.1)):
         return type(y_hat_values) != np.ufunc
     except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
         return False
-
-
-def default_map():
-    default_map = {'x': 1, 'sin': 2, 'exp': 3, 'log': 4, '(': 5, ')': 6, '**': 7, '*': 8, '+': 9,
-                   '/': 10, 'E': 11, 'START': 12, 'END': 13, 'sqrt': 14, '-': 15}
-    max_val = max(list(default_map.values()))
-    numbers = {str(n): max_val+n for n in range(1, 10)}
-    default_map = {**default_map, **numbers}
-    return default_map
 
 
 def translate_sentence(sentence, model, device, max_len=100):
@@ -306,7 +250,7 @@ def translate_sentence(sentence, model, device, max_len=100):
         if pred_token == mapping['END']:
             break
 
-    trg_tokens = get_string(trg_indexes)
+    trg_tokens = get_eq_string(trg_indexes)
 
     return trg_tokens, attention
 
@@ -321,10 +265,6 @@ if __name__ == '__main__':
                                       inputs=x,
                                       support=np.array(info['Support']))
 
-    # scaler = MinMaxScaler()
-    # scaler.min_ = info['min_']
-    # scaler.scale_ = info['scale_']
-    # unscaled_x = scaler.inverse_transform(x[0][:, :, 0])
     unscaled_x = x[0]
 
     print(decoded_output[mask] == sum(mask))

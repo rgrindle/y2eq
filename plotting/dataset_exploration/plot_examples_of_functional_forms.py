@@ -10,7 +10,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import get_string
+from srvgd.updated_eqlearner.tokenization_rg import get_eq_string
 from equation.Equation import Equation
 from srvgd.utils.normalize import normalize
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
                          map_location=torch.device('cpu'))
     eq_list = pd.read_csv('../../datasets/equations_with_coeff{}.csv'.format(dataset_name[7:]), header=None).values.flatten()
 
-    ff_list = np.array([get_string(d[1].tolist())[5:-3] for d in dataset])
+    ff_list = np.array([get_eq_string(d[1].tolist())[5:-3] for d in dataset])
     unique_ff_list, inverse = np.unique(ff_list, return_inverse=True)
 
     ff2indices = {}

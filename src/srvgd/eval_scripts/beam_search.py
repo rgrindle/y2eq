@@ -9,7 +9,8 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import get_string, default_map, normalize
+from srvgd.utils.eval import normalize
+from srvgd.updated_eqlearner.tokenization_rg import token_map, get_eq_string
 
 import torch
 import numpy as np
@@ -39,8 +40,7 @@ def beam_search(beam_size, encoder_input, model,
     model.eval()
     encoder_states = get_encoder_output(model, encoder_input)
 
-    mapping = default_map()
-    prev_indices = [mapping['START']]
+    prev_indices = [token_map['START']]
 
     beam_list = [Beam(beam_size=beam_size,
                       model=model,
@@ -70,7 +70,7 @@ def beam_search(beam_size, encoder_input, model,
     log_prob_list = [n.log_prob/len(n.sequence) for n in beam_list]
     best_index = np.argmax(log_prob_list)
 
-    return get_string(beam_list[best_index].sequence)
+    return get_eq_string(beam_list[best_index].sequence)
 
 
 class Beam:
@@ -103,8 +103,7 @@ class Beam:
         self.log_prob += np.log(p)
 
     def is_done(self):
-        mapping = default_map()
-        return mapping['END'] in self.sequence or \
+        return token_map['END'] in self.sequence or \
             len(self.sequence) >= self.max_sequence_length
 
 
