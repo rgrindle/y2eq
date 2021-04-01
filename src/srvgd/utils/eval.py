@@ -12,7 +12,7 @@ TODO:
 from srvgd.updated_eqlearner.tokenization_rg import get_eq_string
 from srvgd.architecture.seq2seq_cnn_attention import MAX_OUTPUT_LENGTH
 from srvgd.common.save_load_dataset import load_and_format_dataset, onehot2token
-from srvgd.updated_eqlearner.tokenization_rg import default_map
+from srvgd.updated_eqlearner.tokenization_rg import token_map
 
 import torch
 from scipy.optimize import minimize
@@ -222,7 +222,7 @@ def translate_sentence(sentence, model, device, max_len=100):
     with torch.no_grad():
         encoder_conved, encoder_combined = model.encoder(src_tensor)
 
-    mapping = default_map()
+    mapping = token_map()
     trg_indexes = [mapping['START']]
 
     for i in range(max_len):

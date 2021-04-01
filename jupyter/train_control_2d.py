@@ -11,7 +11,7 @@ TODO:
 """
 from train_2d import train
 from srvgd.architecture.torch.get_model import get_model
-from srvgd.updated_eqlearner.tokenization_rg import default_map
+from srvgd.updated_eqlearner.tokenization_rg import token_map
 
 import torch
 import torch.nn as nn
@@ -100,7 +100,7 @@ if args.checkpoint is None:
                       INPUT_DIM=1,
                       ENC_LAYERS=args.layers,
                       DEC_LAYERS=args.layers,
-                      OUTPUT_DIM=len(default_map()),
+                      OUTPUT_DIM=len(token_map()),
                       ENC_MAX_LENGTH=num_y_values,
                       DEC_MAX_LENGTH=eq_max_length)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
@@ -112,7 +112,7 @@ else:
                       load_weights='y2eq_2d{}.pt'.format(args.checkpoint),
                       ENC_LAYERS=args.layers,
                       DEC_LAYERS=args.layers,
-                      OUTPUT_DIM=len(default_map()),
+                      OUTPUT_DIM=len(token_map()),
                       ENC_MAX_LENGTH=num_y_values,
                       DEC_MAX_LENGTH=eq_max_length)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
