@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Mar 21, 2021
+LAST MODIFIED: Mar 30, 2021
 
 PURPOSE: Read in equations_with_coeff for a specified dataset
          then recompute y-values multiple times for each equations
@@ -15,6 +15,7 @@ TODO:
 from srvgd.utils.normalize import normalize
 from equation.EquationInfix import EquationInfix
 from srvgd.updated_eqlearner.tokenization_rg import tokenize_eq
+from srvgd.data_gathering.get_normal_x import get_normal_x
 
 import torch
 from torch.utils.data import TensorDataset
@@ -22,6 +23,7 @@ import pandas as pd
 import numpy as np
 
 import os
+
 
 def rebuild_dataset_with_x(ff_list, num_obs, other_dataset_inputs=None):
     if other_dataset_inputs is None:
@@ -40,8 +42,7 @@ def rebuild_dataset_with_x(ff_list, num_obs, other_dataset_inputs=None):
         coeff_attemps = 0
         while not accepted and not skipped:
             eq = EquationInfix(ff)
-            std_dev = np.random.uniform(0.1, 0.5)
-            X = np.random.normal(loc=1.5, scale=std_dev, size=30)
+            X = get_normal_x(num_points=30)
             X.sort()
             coeffs = np.round(np.random.uniform(-3, 3, eq.num_coeffs), 3)
             Y = eq.f(coeffs, X.T)
@@ -96,6 +97,6 @@ if __name__ == '__main__':
         dataset_parts = rebuild_dataset_with_x(ff_list, num_obs, other_dataset_inputs)
 
         dataset = TensorDataset(torch.Tensor(dataset_parts[0]), torch.LongTensor(dataset_parts[1]))
-        torch.save(dataset, os.path.join(dataset_path, 'dataset_'+dataset_type+'_ff1000_normal.pt'))
+        torch.save(dataset, os.path.join(dataset_path, 'dataset_'+dataset_type+'_ff1000_normal_with_x.pt'))
 
-        pd.DataFrame(dataset_parts[2]).to_csv(os.path.join(dataset_path, 'equations_with_coeff_'+dataset_type+'_ff1000_normal.csv'))
+        pd.DataFrame(dataset_parts[2]).to_csv(os.path.join(dataset_path, 'equations_with_coeff_'+dataset_type+'_ff1000_normal_with_x.csv'))
