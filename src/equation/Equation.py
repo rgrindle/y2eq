@@ -11,6 +11,7 @@ NOTES:
 
 TODO:
 """
+from srvgd.utils.eval import RMSE
 from gp.protected_functions import protected_exp, protected_log, pow2, pow3, pow4, pow5, pow6  # noqa: F401
 
 from scipy.optimize import minimize
@@ -72,13 +73,23 @@ class Equation:
 
         def loss(c, x):
             y_hat = self.f(c, x).flatten()
-            return np.sqrt(np.mean(np.power(y-y_hat, 2)))
+            return RMSE(y_hat, y)
 
-        res = minimize(loss, np.ones(self.num_coeffs),
-                       args=(self.x,),
-                       bounds=[(-3, 3)]*self.num_coeffs,
-                       method='L-BFGS-B')
+        rmse_list = []
+        coeffs_list = []
+        for _ in range(10):
+            res = minimize(loss, np.random.uniform(-3, 3, self.num_coeffs), args=(self.x,),
+                           bounds=[(-3, 3)]*self.num_coeffs,
+                           method='L-BFGS-B')
+            rmse_list.append(loss(res.x, self.x))
+            coeffs_list.append(res.x)
 
-        self.coeffs = res.x
-        self.rmse = loss(res.x, self.x)
+        if np.all(np.isnan(rmse_list)):
+            self.coeffs = coeffs_list[0]
+            self.rmse = float('inf')
+        else:
+            index = np.nanargmin(rmse_list)
+            self.coeffs = coeffs_list[index]
+            self.rmse = rmse_list[index]
+
         return self.coeffs, self.rmse
