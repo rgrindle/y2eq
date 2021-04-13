@@ -161,6 +161,7 @@ def apply_coeffs(eq):
 
 
 def RMSE(y, y_hat):
+    assert y.shape == y_hat.shape
     return np.sqrt(np.mean(np.power(y-y_hat, 2)))
 
 
