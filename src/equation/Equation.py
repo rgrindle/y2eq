@@ -44,16 +44,24 @@ class Equation:
         else:
             lambda_str_beg = 'lambda x: '
 
-        self.f = eval(lambda_str_beg+self.eq_str)
-        return self.f
+        try:
+            self.f = eval(lambda_str_beg+self.eq_str)
+            return self.f
+
+        except SyntaxError:
+            self.valid = False
 
     def is_valid(self):
-        try:
-            self.get_f()
-            y = self.f(self.x)
-            return type(y) != np.ufunc
-        except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
+        if hasattr(self, 'valid') and not self.valid:
             return False
+
+        else:
+            try:
+                self.get_f()
+                y = self.f(self.x)
+                return type(y) != np.ufunc
+            except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
+                return False
 
     def apply_coeffs(self):
         pass
