@@ -43,8 +43,10 @@ def write_x_y_lists(eq_list_filename, x_type):
 
         if x_type == 'different':
             x_int = np.random.uniform(0.1, 3.1, 30)
+            x_int.sort()
         elif x_type == 'normal':
             x_int = get_normal_x(num_points=30)
+            x_int.sort()
 
         x_list.append(x_int.tolist())
 
@@ -77,11 +79,12 @@ def write_x_y_lists(eq_list_filename, x_type):
         json.dump(y_ext_unnormalized_list, file)
 
 
-def eval_nn(input_list, model_filename):
+def eval_nn(input_list, model_filename, **get_model_kwargs):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = get_model(device,
                       path='../models/',
-                      load_weights=model_filename)
+                      load_weights=model_filename,
+                      **get_model_kwargs)
 
     predicted_data = []
     for i, input_ in enumerate(input_list):
@@ -105,22 +108,28 @@ def fit_coeffs_and_get_rmse(y_int_list, y_ext_list, ff_list):
     for i, (ff, y_int, y_ext) in enumerate(zip(ff_list, y_int_list, y_ext_list)):
         y_int = np.array(y_int).flatten()
 
-        try:
-            eq = EquationInfix(ff, x=x_int)
-            eq.fit(y_int)
-
-            y_int_true_norm, true_min_, true_scale = normalize(y_int, return_params=True)
-            y_int_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_int).flatten(), true_min_, true_scale)
-
-            y_ext_true_norm = normalize(y_ext, true_min_, true_scale)
-            y_ext_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_ext).flatten(), true_min_, true_scale)
-
-            rmse_int = RMSE(y_int_true_norm, y_int_pred_norm)
-            rmse_ext = RMSE(y_ext_true_norm, y_ext_pred_norm)
-
-        except SyntaxError:
+        if pd.isnull(ff):
             rmse_int = np.inf
             rmse_ext = np.inf
+
+        else:
+            eq = EquationInfix(ff, x=x_int)
+
+            if eq.is_valid():
+                eq.fit(y_int)
+
+                y_int_true_norm, true_min_, true_scale = normalize(y_int, return_params=True)
+                y_int_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_int).flatten(), true_min_, true_scale)
+
+                y_ext_true_norm = normalize(y_ext, true_min_, true_scale)
+                y_ext_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_ext).flatten(), true_min_, true_scale)
+
+                rmse_int = RMSE(y_int_true_norm, y_int_pred_norm)
+                rmse_ext = RMSE(y_ext_true_norm, y_ext_pred_norm)
+
+            else:
+                rmse_int = np.inf
+                rmse_ext = np.inf
 
         rmse_int_list.append(rmse_int)
         rmse_ext_list.append(rmse_ext)

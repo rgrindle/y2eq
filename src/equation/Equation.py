@@ -47,7 +47,7 @@ class Equation:
         self.f = eval(lambda_str_beg+self.eq_str)
         return self.f
 
-    def is_eq_valid(self):
+    def is_valid(self):
         try:
             self.get_f()
             y = self.f(self.x)
