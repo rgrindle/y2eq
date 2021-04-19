@@ -24,10 +24,11 @@ def get_y2eq_model(device, path='models', load_weights=None,
                    DEC_MAX_LENGTH=67,  # length of longest equation in terms of number of tokens
                    two_d=False):
 
-    if two_d:
-        OUTPUT_DIM = len(token_map_2d)
-    else:
-        OUTPUT_DIM = len(token_map)
+    if OUTPUT_DIM is None:
+        if two_d:
+            OUTPUT_DIM = len(token_map_2d)
+        else:
+            OUTPUT_DIM = len(token_map)
 
     enc = Encoder(INPUT_DIM, EMB_DIM, HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT, device, max_length=ENC_MAX_LENGTH)
     dec = Decoder(OUTPUT_DIM, EMB_DIM, HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device, max_length=DEC_MAX_LENGTH)
