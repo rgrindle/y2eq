@@ -11,7 +11,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import RMSE
+from srvgd.utils.rmse import RMSE
 from gp.protected_functions import protected_exp, protected_log, pow2, pow3, pow4, pow5, pow6  # noqa: F401
 
 from scipy.optimize import minimize
@@ -68,12 +68,13 @@ class Equation:
         return eq_placed_coeffs
 
     def fit(self, y):
+        assert y.ndim == 1
         assert self.x is not None, 'x not specified'
         assert self.num_coeffs > 0, 'num_coeffs must be > 0'
 
         def loss(c, x):
             y_hat = self.f(c, x).flatten()
-            return RMSE(y_hat, y)
+            return RMSE(y_hat=y_hat, y=y)
 
         rmse_list = []
         coeffs_list = []
