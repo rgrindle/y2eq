@@ -20,6 +20,7 @@ from srvgd.utils.rmse import RMSE
 import torch
 import numpy as np
 import pandas as pd
+import torch.nn.functional as F
 
 import json
 
@@ -102,18 +103,18 @@ def eval_y2eq(input_list, model_filename, **get_model_kwargs):
 
 def eval_plot2eq(input_list, model_filename, **get_model_kwargs):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = get_plot2eq_model(device,
-                           path='../models/',
-                           load_weights=model_filename,
-                           **get_model_kwargs)
+    encoder, decoder = get_plot2eq_model(device=device,
+                                         path='../models/',
+                                         model_name=model_filename,
+                                         **get_model_kwargs)
+
+    two_d = False if 'two_d' not in get_model_kwargs else get_model_kwargs['two_d']
 
     predicted_data = []
     for i, input_ in enumerate(input_list):
 
-        predicted = translate_sentence(sentence=input_,
-                                       model=model,
-                                       device=device,
-                                       max_len=67)[0]
+        predicted = evaluate_one_image(input_, encoder, decoder, device, two_d)
+        print(predicted)
         predicted_data.append(predicted[5:-3])
         print(i, predicted_data[-1])
 
@@ -197,6 +198,59 @@ def translate_sentence(sentence, model, device, max_len=100,
     trg_tokens = get_eq_string(trg_indexes, two_d)
 
     return trg_tokens, attention
+
+
+def evaluate_one_image(image, encoder, decoder, device, two_d):
+
+    if type(image) != torch.Tensor:
+        image = torch.Tensor(image)
+
+    image = image.to(device).unsqueeze(0)
+    encoder_out = encoder(image)  # (1, enc_image_size, enc_image_size, encoder_dim)
+
+    # flatten encoding
+    encoder_dim = encoder_out.size(-1)
+    encoder_out = encoder_out.contiguous().view(1, -1, encoder_dim)  # (1, num_pixels, encoder_dim)
+
+    # Start decoding
+    step = 1
+    h, c = decoder.init_hidden_state(encoder_out)
+
+    if two_d:
+        mapping = token_map_2d
+    else:
+        mapping = token_map
+
+    prev_word = torch.LongTensor([mapping['START']]).to(device)
+    sentence = []
+
+    # s is a number less than or equal to k, because sequences are removed from this process once they hit <end>
+    while True:
+        prev_word, h, c = decode_one_token(decoder, prev_word, h, c, encoder_out)
+        sentence.append(prev_word.item())
+
+        if step > 100 or prev_word == mapping['END']:
+            break
+        step += 1
+
+    return get_eq_string(sentence, two_d).replace('END', '')
+
+
+def decode_one_token(decoder, prev_word, h, c, encoder_out):
+
+    embeddings = decoder.embedding(prev_word.unsqueeze(0)).squeeze(1)  # (s, embed_dim)
+
+    awe, _ = decoder.attention(encoder_out, h)  # (s, encoder_dim), (s, num_pixels)
+
+    gate = decoder.sigmoid(decoder.f_beta(h))  # gating scalar, (s, encoder_dim)
+    awe = gate * awe
+
+    h, c = decoder.decode_step(torch.cat([embeddings, awe], dim=1), (h, c))  # (s, decoder_dim)
+
+    pred_raw = decoder.fc(h)  # (s, vocab_size)
+    pred_raw = F.log_softmax(pred_raw, dim=1)
+    prev_word = torch.argmax(pred_raw).unsqueeze(0)
+    return prev_word, h, c
 
 
 if __name__ == '__main__':

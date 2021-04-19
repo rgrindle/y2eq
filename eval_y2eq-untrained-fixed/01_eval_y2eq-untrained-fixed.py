@@ -9,7 +9,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import eval_nn
+from srvgd.utils.eval import eval_y2eq
 
 import torch
 import numpy as np
@@ -22,5 +22,5 @@ np.random.seed(1)
 with open('00_y_int_normalized_list.json', 'r') as json_file:
     y_int_list = json.load(json_file)
 
-eval_nn(input_list=y_int_list,
-        model_filename=None)
+eval_y2eq(input_list=y_int_list,
+          model_filename=None)

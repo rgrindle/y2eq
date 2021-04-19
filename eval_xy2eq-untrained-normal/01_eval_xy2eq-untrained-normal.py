@@ -9,7 +9,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.utils.eval import eval_nn
+from srvgd.utils.eval import eval_y2eq
 
 import torch
 import numpy as np
@@ -27,6 +27,6 @@ with open('00_y_int_normalized_list.json', 'r') as json_file:
 
 input_list = np.stack((x_list, y_int_list), axis=2)
 
-eval_nn(input_list=input_list,
-        model_filename=None,
-        INPUT_DIM=2)
+eval_y2eq(input_list=input_list,
+          model_filename=None,
+          INPUT_DIM=2)
