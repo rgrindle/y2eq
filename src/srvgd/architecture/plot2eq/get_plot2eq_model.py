@@ -15,13 +15,10 @@ def get_plot2eq_model(model_name, path, device,
                       resnet_num=18,
                       two_d=False):
 
-    if two_d:
-        encoder = Encoder_3d(resnet_num)
-        vocab_size = len(token_map_2d)
+    encoder = Encoder_3d(resnet_num) if two_d else Encoder(resnet_num)
 
-    else:
-        encoder = Encoder(resnet_num)
-        vocab_size = len(token_map)
+    if vocab_size is None:
+        vocab_size = len(token_map_2d) if two_d else len(token_map)
 
     decoder = DecoderWithAttention(attention_dim=attention_dim,
                                    embed_dim=emb_dim,
