@@ -36,6 +36,9 @@ class Equation:
         self.get_f()
 
     def get_f(self):
+        if hasattr(self, 'f'):
+            return self.f
+
         for p in ['sin', 'exp', 'log']:
             self.eq_str = self.eq_str.replace(p, 'np.'+p)
 
@@ -58,7 +61,10 @@ class Equation:
         else:
             try:
                 self.get_f()
-                y = self.f(self.x)
+                if self.num_coeffs == 0:
+                    y = self.f(self.x)
+                else:
+                    y = self.f(np.ones(self.num_coeffs), self.x)
                 return type(y) != np.ufunc
             except (SyntaxError, TypeError, AttributeError, NameError, FloatingPointError, ValueError):
                 return False
