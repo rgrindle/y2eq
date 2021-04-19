@@ -18,9 +18,11 @@ def get_plot2eq_model(model_name, path, device,
     if two_d:
         encoder = Encoder_3d(resnet_num)
         vocab_size = len(token_map_2d)
+
     else:
         encoder = Encoder(resnet_num)
         vocab_size = len(token_map)
+
     decoder = DecoderWithAttention(attention_dim=attention_dim,
                                    embed_dim=emb_dim,
                                    decoder_dim=decoder_dim,
@@ -28,10 +30,11 @@ def get_plot2eq_model(model_name, path, device,
                                    encoder_dim=encoder.out_shape,
                                    dropout=dropout)
 
-    checkpoint = torch.load(os.path.join(path, model_name),
-                            map_location=device)
+    if model_name is not None:
+        checkpoint = torch.load(os.path.join(path, model_name),
+                                map_location=device)
 
-    encoder.load_state_dict(checkpoint['encoder'])
-    decoder.load_state_dict(checkpoint['decoder'])
+        encoder.load_state_dict(checkpoint['encoder'])
+        decoder.load_state_dict(checkpoint['decoder'])
 
     return encoder, decoder
