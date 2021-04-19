@@ -12,7 +12,7 @@ TODO:
 """
 from train import train
 from evaluate import evaluate
-from srvgd.architecture.torch.get_model import get_model
+from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
 
 import torch
 import torch.nn as nn
@@ -80,15 +80,15 @@ print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=32, valid_size=0.30)
 
 if args.checkpoint is None:
-    model = get_model(device)
+    model = get_y2eq_model(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
-    model = get_model(device, 'cnn{}.pt'.format(args.checkpoint))
+    model = get_y2eq_model(device, 'cnn{}.pt'.format(args.checkpoint))
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
     optimizer.load_state_dict(os.path.join('..', 'datasets', torch.load('optimizer{}.pt'.format(args.checkpoint)),
-                                         map_location=device))
+                              map_location=device))
     print('done.')
 
 print(f'The model has {count_parameters(model):,} trainable parameters')

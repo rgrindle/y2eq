@@ -1,26 +1,26 @@
-from plot2eq.data_gathering.word_map import word_map, word_map_2d
-from plot2eq.architecture.models import Encoder, Encoder_3d, DecoderWithAttention
+from srvgd.updated_eqlearner.tokenization_rg import token_map, token_map_2d
+from srvgd.architecture.plot2eq.models import Encoder, Encoder_3d, DecoderWithAttention
 
 import torch
 
 import os
 
 
-def get_model(model_name, path, device,
-              emb_dim=512,
-              attention_dim=512,
-              decoder_dim=512,
-              vocab_size=None,
-              dropout=0.25,
-              resnet_num=18,
-              higher_dimension=False):
+def get_plot2eq_model(model_name, path, device,
+                      emb_dim=512,
+                      attention_dim=512,
+                      decoder_dim=512,
+                      vocab_size=None,
+                      dropout=0.25,
+                      resnet_num=18,
+                      two_d=False):
 
-    if higher_dimension:
+    if two_d:
         encoder = Encoder_3d(resnet_num)
-        vocab_size = len(word_map_2d)
+        vocab_size = len(token_map_2d)
     else:
         encoder = Encoder(resnet_num)
-        vocab_size = len(word_map)
+        vocab_size = len(token_map)
     decoder = DecoderWithAttention(attention_dim=attention_dim,
                                    embed_dim=emb_dim,
                                    decoder_dim=decoder_dim,

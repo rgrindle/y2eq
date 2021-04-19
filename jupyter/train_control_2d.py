@@ -10,7 +10,7 @@ NOTES: Uses train_2d.py and evaluate_2d.py
 TODO:
 """
 from train_2d import train
-from srvgd.architecture.torch.get_model import get_model
+from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
 from srvgd.updated_eqlearner.tokenization_rg import token_map_2d
 
 import torch
@@ -96,25 +96,25 @@ eq_max_length = len(train_data[0][1])
 num_y_values = 1024
 
 if args.checkpoint is None:
-    model = get_model(device,
-                      INPUT_DIM=1,
-                      ENC_LAYERS=args.layers,
-                      DEC_LAYERS=args.layers,
-                      OUTPUT_DIM=len(token_map_2d()),
-                      ENC_MAX_LENGTH=num_y_values,
-                      DEC_MAX_LENGTH=eq_max_length)
+    model = get_y2eq_model(device,
+                           INPUT_DIM=1,
+                           ENC_LAYERS=args.layers,
+                           DEC_LAYERS=args.layers,
+                           ENC_MAX_LENGTH=num_y_values,
+                           DEC_MAX_LENGTH=eq_max_length,
+                           two_d=True)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
-    model = get_model(device,
-                      path=os.path.join('..', 'models'),
-                      load_weights='y2eq_2d{}.pt'.format(args.checkpoint),
-                      ENC_LAYERS=args.layers,
-                      DEC_LAYERS=args.layers,
-                      OUTPUT_DIM=len(token_map_2d()),
-                      ENC_MAX_LENGTH=num_y_values,
-                      DEC_MAX_LENGTH=eq_max_length)
+    model = get_y2eq_model(device,
+                           path=os.path.join('..', 'models'),
+                           load_weights='y2eq_2d{}.pt'.format(args.checkpoint),
+                           ENC_LAYERS=args.layers,
+                           DEC_LAYERS=args.layers,
+                           ENC_MAX_LENGTH=num_y_values,
+                           DEC_MAX_LENGTH=eq_max_length,
+                           two_d=True)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     optimizer.load_state_dict(torch.load(os.path.join('..', 'models', 'y2eq_2d_optimizer{}.pt'.format(args.checkpoint)),
                               map_location=device))

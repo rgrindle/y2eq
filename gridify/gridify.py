@@ -12,7 +12,7 @@ TODO:
 """
 from srvgd.utils.normalize import normalize
 from srvgd.utils.eval import translate_sentence, get_f, RMSE
-from srvgd.architecture.torch.get_model import get_model
+from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
 from equation.EquationInfix import EquationInfix
 
 import torch
@@ -54,9 +54,9 @@ if __name__ == '__main__':
 
     file_endname = '_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900'
     device = torch.device('cpu')
-    symbolic_model = get_model(device,
-                               path=os.path.join('..', 'models'),
-                               load_weights='cnn{}.pt'.format(file_endname))
+    symbolic_model = get_y2eq_model(device,
+                                    path=os.path.join('..', 'models'),
+                                    load_weights='cnn{}.pt'.format(file_endname))
     predicted_eq = translate_sentence(sentence=torch.Tensor(y_input),
                                       model=symbolic_model,
                                       device=device)[0][5:-3]

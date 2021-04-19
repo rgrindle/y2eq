@@ -13,7 +13,8 @@ from srvgd.updated_eqlearner.tokenization_rg import get_eq_string, token_map, to
 from equation.EquationInfix import EquationInfix
 from srvgd.utils.normalize import normalize
 from srvgd.data_gathering.get_normal_x import get_normal_x
-from srvgd.architecture.torch.get_model import get_model
+from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
+from srvgd.architecture.plot2eq.get_plot2eq_model import get_plot2eq_model
 from srvgd.utils.rmse import RMSE
 
 import torch
@@ -79,12 +80,32 @@ def write_x_y_lists(eq_list_filename, x_type):
         json.dump(y_ext_unnormalized_list, file)
 
 
-def eval_nn(input_list, model_filename, **get_model_kwargs):
+def eval_y2eq(input_list, model_filename, **get_model_kwargs):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = get_model(device,
-                      path='../models/',
-                      load_weights=model_filename,
-                      **get_model_kwargs)
+    model = get_y2eq_model(device,
+                           path='../models/',
+                           load_weights=model_filename,
+                           **get_model_kwargs)
+
+    predicted_data = []
+    for i, input_ in enumerate(input_list):
+
+        predicted = translate_sentence(sentence=input_,
+                                       model=model,
+                                       device=device,
+                                       max_len=67)[0]
+        predicted_data.append(predicted[5:-3])
+        print(i, predicted_data[-1])
+
+    pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
+
+
+def eval_plot2eq(input_list, model_filename, **get_model_kwargs):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = get_plot2eq_model(device,
+                           path='../models/',
+                           load_weights=model_filename,
+                           **get_model_kwargs)
 
     predicted_data = []
     for i, input_ in enumerate(input_list):

@@ -11,7 +11,7 @@ NOTES: Only includes the training portion (no dataset generation)
 TODO:
 """
 from train_all1000_just_y import train
-from srvgd.architecture.torch.get_model import get_model
+from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
 
 import torch
 import torch.nn as nn
@@ -108,22 +108,22 @@ print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 train_loader, valid_loader, test_loader, valid_idx, train_idx = dataset_loader(train_data, test_data, batch_size=args.batch_size, valid_size=0.30)
 
 if args.checkpoint is None:
-    model = get_model(device,
-                      INPUT_DIM=args.input_dim,
-                      ENC_LAYERS=args.layers,
-                      DEC_LAYERS=args.layers,
-                      ENC_MAX_LENGTH=1000)
+    model = get_y2eq_model(device,
+                           INPUT_DIM=args.input_dim,
+                           ENC_LAYERS=args.layers,
+                           DEC_LAYERS=args.layers,
+                           ENC_MAX_LENGTH=1000)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 else:
     print('Loading partly (or previously) trained model...', flush=True, end='')
-    model = get_model(device,
-                      path=os.path.join('..', 'models'),
-                      load_weights='cnn{}.pt'.format(args.checkpoint),
-                      ENC_LAYERS=args.layers,
-                      DEC_LAYERS=args.layers,
-                      INPUT_DIM=args.input_dim,
-                      ENC_MAX_LENGTH=1000)
+    model = get_y2eq_model(device,
+                           path=os.path.join('..', 'models'),
+                           load_weights='cnn{}.pt'.format(args.checkpoint),
+                           ENC_LAYERS=args.layers,
+                           DEC_LAYERS=args.layers,
+                           INPUT_DIM=args.input_dim,
+                           ENC_MAX_LENGTH=1000)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     optimizer.load_state_dict(torch.load(os.path.join('..', 'models', 'optimizer{}.pt'.format(args.checkpoint)),
                               map_location=device))

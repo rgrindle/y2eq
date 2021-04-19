@@ -63,8 +63,8 @@ if __name__ == '__main__':
         model = keras.models.load_model(os.path.join('..', '..', '..', 'models', 'model_seq2seq_cnn_attention_model'))
 
     else:
-        from srvgd.architecture.seq2seq_cnn_attention import get_model
-        model = get_model()
+        from srvgd.architecture.seq2seq_cnn_attention import get_y2eq_model
+        model = get_y2eq_model()
 
     x, y = load_and_format_dataset(dataset_name, 'train')
 

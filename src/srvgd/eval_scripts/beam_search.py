@@ -108,13 +108,13 @@ class Beam:
 
 
 if __name__ == '__main__':
-    from srvgd.architecture.torch.get_model import get_model
+    from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
     import numpy as np
 
     # get model
-    model = get_model(torch.device('cpu'),
-                      path='../../../models/',
-                      load_weights='cnn_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900.pt')
+    model = get_y2eq_model(torch.device('cpu'),
+                           path='../../../models/',
+                           load_weights='cnn_dataset_train_ff1000_batchsize2000_lr0.0001_clip1_layers10_900.pt')
 
     # get input
     x = np.arange(0.1, 3.1, 0.1)[:, None]
