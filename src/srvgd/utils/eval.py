@@ -115,7 +115,7 @@ def eval_plot2eq(input_list, model_filename, **get_model_kwargs):
 
         predicted = evaluate_one_image(input_, encoder, decoder, device, two_d)
         print(predicted)
-        predicted_data.append(predicted[5:-3])
+        predicted_data.append(predicted)
         print(i, predicted_data[-1])
 
     pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
