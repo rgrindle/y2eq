@@ -114,9 +114,10 @@ if __name__ == '__main__':
         y_list.extend([y.tolist() for y in FF.y_list])
         eq_list.extend(FF.eq_list)
 
-    print(len(y_list), len(y_list[0]))
+    print('y', len(y_list), len(y_list[0]))
 
-    print(len(eq_list), len(eq_list[0]))
+    if eq_list[0] is not None:
+        print('eq', len(eq_list), len(eq_list[0]))
 
     with open('y_list_start{}.json'.format(args.start), 'w') as file:
         json.dump(y_list, file)
