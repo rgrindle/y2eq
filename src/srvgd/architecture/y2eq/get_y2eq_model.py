@@ -1,6 +1,6 @@
-from srvgd.architecture.torch.encoder import Encoder
-from srvgd.architecture.torch.decoder import Decoder
-from srvgd.architecture.torch.cnn_seq2seq_arch import Seq2Seq
+from srvgd.architecture.y2eq.encoder import Encoder
+from srvgd.architecture.y2eq.decoder import Decoder
+from srvgd.architecture.y2eq.cnn_seq2seq_arch import Seq2Seq
 from srvgd.updated_eqlearner.tokenization_rg import token_map, token_map_2d
 
 import torch
