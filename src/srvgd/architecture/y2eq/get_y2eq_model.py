@@ -1,7 +1,7 @@
 from srvgd.architecture.y2eq.encoder import Encoder
 from srvgd.architecture.y2eq.decoder import Decoder
 from srvgd.architecture.y2eq.cnn_seq2seq_arch import Seq2Seq
-from srvgd.updated_eqlearner.tokenization_rg import token_map, token_map_2d
+from srvgd.updated_eqlearner.tokenization_rg import token_map, token_map_2d, token_map_with_coeffs
 
 import torch
 
@@ -22,13 +22,14 @@ def get_y2eq_model(device, path='models', load_weights=None,
                    TRG_PAD_IDX=0,
                    ENC_MAX_LENGTH=30,
                    DEC_MAX_LENGTH=67,  # length of longest equation in terms of number of tokens
-                   two_d=False):
+                   two_d=False,
+                   include_coeffs=False):
 
     if OUTPUT_DIM is None:
-        if two_d:
-            OUTPUT_DIM = len(token_map_2d)
+        if include_coeffs:
+            OUTPUT_DIM = len(token_map_with_coeffs)
         else:
-            OUTPUT_DIM = len(token_map)
+            OUTPUT_DIM = len(token_map_2d) if two_d else len(token_map)
 
     enc = Encoder(INPUT_DIM, EMB_DIM, HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT, device, max_length=ENC_MAX_LENGTH)
     dec = Decoder(OUTPUT_DIM, EMB_DIM, HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device, max_length=DEC_MAX_LENGTH)
