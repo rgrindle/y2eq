@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     FF_list = []
     rmse_avg_list = []
-    for i, ff in enumerate(unique_ff_list[args.start:args.start+args.num_ff_to_do]):
+    for i, ff in enumerate(unique_ff_list[args.start*args.num_ff_to_do:(args.start+1)*args.num_ff_to_do]):
         FF = FFObject(ff)
         FF_list.append(FF)
         rmse_avg_list.append(np.mean(FF.rmse_list))
