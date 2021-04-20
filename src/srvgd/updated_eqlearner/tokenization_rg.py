@@ -35,6 +35,14 @@ token_map_2d = {**token_map_2d, **numbers_2d}
 inverse_token_map_2d = {token_map_2d[key]: key for key in token_map_2d}
 
 
+token_map_with_coeffs = {'': 0, 'x': 1, 'sin': 2, 'exp': 3, 'log': 4, '(': 5, ')': 6, '**': 7, '*': 8, '+': 9,
+                         '/': 10, 'E': 11, 'START': 12, 'END': 13, 'sqrt': 14, '-': 15, '.': 16}
+max_val_with_coeffs = max(list(token_map_with_coeffs.values()))
+numbers_with_coeffs = {str(n): max_val_with_coeffs+n for n in range(10)}
+token_map_with_coeffs = {**token_map_with_coeffs, **numbers_with_coeffs}
+inverse_token_map_with_coeffs = {token_map_with_coeffs[key]: key for key in token_map_with_coeffs}
+
+
 def numberize_tokens(tokens, two_d):
     if two_d:
         return [token_map_2d[di] for di in tokens]
