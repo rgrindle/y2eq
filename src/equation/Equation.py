@@ -99,6 +99,12 @@ class Equation:
             rmse_list.append(loss(res.x, self.x))
             coeffs_list.append(res.x)
 
+        res = minimize(loss, np.ones(self.num_coeffs), args=(self.x,),
+                       bounds=[(-3, 3)]*self.num_coeffs,
+                       method='L-BFGS-B')
+        rmse_list.append(loss(res.x, self.x))
+        coeffs_list.append(res.x)
+
         if np.all(np.isnan(rmse_list)):
             self.coeffs = coeffs_list[0]
             self.rmse = float('inf')
