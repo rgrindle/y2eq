@@ -30,7 +30,7 @@ parser.add_argument('--checkpoint', type=str,
                     help='Provide name of model to continue training. '
                          'Example: if you can cnn_model1.pt and optimizer_model1.pt '
                          'use --checkpoint _model1 to continue training.')
-parser.add_argument('--dataset', type=str,
+parser.add_argument('--dataset', type=str, required=True,
                     help='Specify dataset to load and use for training. '
                          'it is assumed that there is dataset with the same name '
                          'except that train is replaced by test.',
