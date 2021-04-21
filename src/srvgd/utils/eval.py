@@ -253,5 +253,9 @@ def decode_one_token(decoder, prev_word, h, c, encoder_out):
     return prev_word, h, c
 
 
+def remove_nan(data):
+    return data[~np.isnan(data)]
+
+
 if __name__ == '__main__':
     pass
