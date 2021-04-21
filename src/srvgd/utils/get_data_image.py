@@ -49,7 +49,7 @@ def get_data_image(data, dim=2, bins=(64, 64)):
         # Make 3 channel since
         # that is what ResNet expects.
         # Just make each channel the same.
-        hist = hist[None]
+        hist = hist.T[None]
         hist = np.repeat(hist, 3, axis=0)
     return hist
 
