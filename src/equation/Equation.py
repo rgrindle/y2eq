@@ -81,29 +81,47 @@ class Equation:
             eq_placed_coeffs = eq_placed_coeffs.replace('np.', '')
         return eq_placed_coeffs
 
-    def fit(self, y):
-        assert y.ndim == 1
-        assert self.x is not None, 'x not specified'
-        assert self.num_coeffs > 0, 'num_coeffs must be > 0'
+    def regression(self, y, init_guess_type='random',
+                   init_guess=None):
+        assert init_guess_type in ('random', 'ones', None)
 
         def loss(c, x):
             y_hat = self.f(c, x).flatten()
             return RMSE(y_hat=y_hat, y=y)
 
+        if init_guess_type == 'random':
+            init_guess = np.random.uniform(-3, 3, self.num_coeffs)
+        elif init_guess_type == 'ones':
+            init_guess = np.ones(self.num_coeffs)
+        else:
+            assert init_guess is not None
+
+        res = minimize(loss, init_guess, args=(self.x,),
+                       bounds=[(-3, 3)]*self.num_coeffs,
+                       method='L-BFGS-B')
+
+        rmse = loss(res.x, self.x)
+        coeffs = res.x
+
+        return coeffs, rmse
+
+    def fit(self, y):
+        assert y.ndim == 1
+        assert self.x is not None, 'x not specified'
+        assert self.num_coeffs > 0, 'num_coeffs must be > 0'
+
         rmse_list = []
         coeffs_list = []
         for _ in range(10):
-            res = minimize(loss, np.random.uniform(-3, 3, self.num_coeffs), args=(self.x,),
-                           bounds=[(-3, 3)]*self.num_coeffs,
-                           method='L-BFGS-B')
-            rmse_list.append(loss(res.x, self.x))
-            coeffs_list.append(res.x)
+            coeffs, rmse = self.regression(y, init_guess_type='random')
 
-        res = minimize(loss, np.ones(self.num_coeffs), args=(self.x,),
-                       bounds=[(-3, 3)]*self.num_coeffs,
-                       method='L-BFGS-B')
-        rmse_list.append(loss(res.x, self.x))
-        coeffs_list.append(res.x)
+            rmse_list.append(rmse)
+            coeffs_list.append(coeffs)
+
+        coeffs, rmse = self.regression(y, init_guess_type='ones')
+
+        rmse_list.append(rmse)
+        coeffs_list.append(coeffs)
 
         if np.all(np.isnan(rmse_list)):
             self.coeffs = coeffs_list[0]
