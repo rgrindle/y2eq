@@ -35,11 +35,13 @@ def write_x_y_lists(eq_list_filename, x_type):
     if x_type == 'fixed':
         x_int = np.arange(0.1, 3.1, 0.1)
 
+    x_int_fixed = np.arange(0.1, 3.1, 0.1)
     x_ext = np.arange(3.1, 6.1, 0.1)
 
     x_list = []
     y_int_normalized_list = []
     y_int_unnormalized_list = []
+    y_int_fixed_unnormalized_list = []
     y_ext_unnormalized_list = []
     for i, eq in enumerate(eq_list):
 
@@ -60,6 +62,7 @@ def write_x_y_lists(eq_list_filename, x_type):
             exit()
 
         y_int_unnormalized_list.append(y_int.tolist())
+        y_int_fixed_unnormalized_list.append(eq.f(x_int_fixed).tolist())
         y_int_normalized_list.append(normalize(y_int)[:, None].tolist())
         y_ext_unnormalized_list.append(eq.f(x_ext).tolist())
 
@@ -76,6 +79,9 @@ def write_x_y_lists(eq_list_filename, x_type):
 
     with open('00_y_int_unnormalized_list.json', 'w') as file:
         json.dump(y_int_unnormalized_list, file)
+
+    with open('00_y_int_fixed_unnormalized_list.json', 'w') as file:
+        json.dump(y_int_fixed_unnormalized_list, file)
 
     with open('00_y_ext_unnormalized_list.json', 'w') as file:
         json.dump(y_ext_unnormalized_list, file)
@@ -121,14 +127,14 @@ def eval_plot2eq(input_list, model_filename, **get_model_kwargs):
     pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
 
 
-def fit_coeffs_and_get_rmse(y_int_list, y_ext_list, ff_list):
+def fit_coeffs_and_get_rmse(y_int_fixed_list, y_ext_list, ff_list):
     x_int = np.arange(0.1, 3.1, 0.1)
     x_ext = np.arange(3.1, 6.1, 0.1)
 
     rmse_int_list = []
     rmse_ext_list = []
-    for i, (ff, y_int, y_ext) in enumerate(zip(ff_list, y_int_list, y_ext_list)):
-        y_int = np.array(y_int).flatten()
+    for i, (ff, y_int_fixed, y_ext) in enumerate(zip(ff_list, y_int_fixed_list, y_ext_list)):
+        y_int = np.array(y_int_fixed).flatten()
 
         if pd.isnull(ff):
             rmse_int = np.inf
