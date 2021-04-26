@@ -16,8 +16,8 @@ import pandas as pd
 
 import json
 
-with open('00_y_int_unnormalized_list.json', 'r') as json_file:
-    y_int_unnormalized_list = json.load(json_file)
+with open('00_y_int_fixed_unnormalized_list.json', 'r') as json_file:
+    y_int_fixed_unnormalized_list = json.load(json_file)
 
 with open('00_y_ext_unnormalized_list.json', 'r') as json_file:
     y_ext_unnormalized_list = json.load(json_file)
