@@ -9,7 +9,7 @@ NOTES:
 
 TODO:
 """
-from srvgd.updated_eqlearner.tokenization_rg import get_eq_string, token_map, token_map_2d
+from srvgd.updated_eqlearner.tokenization_rg import get_eq_string, token_map, token_map_2d, token_map_with_coeffs
 from equation.EquationInfix import EquationInfix
 from srvgd.utils.normalize import normalize
 from srvgd.data_gathering.get_normal_x import get_normal_x
@@ -94,13 +94,17 @@ def eval_y2eq(input_list, model_filename, **get_model_kwargs):
                            load_weights=model_filename,
                            **get_model_kwargs)
 
+    two_d = get_model_kwargs['two_d'] if 'two_d' in get_model_kwargs else False
+    include_coeffs = get_model_kwargs['include_coeffs'] if 'include_coeffs' in get_model_kwargs else False
+
     predicted_data = []
     for i, input_ in enumerate(input_list):
 
         predicted = translate_sentence(sentence=input_,
                                        model=model,
                                        device=device,
-                                       max_len=67)[0]
+                                       two_d=two_d,
+                                       include_coeffs=include_coeffs)[0]
         predicted_data.append(predicted[5:-3])
         print(i, predicted_data[-1])
 
@@ -167,7 +171,8 @@ def fit_coeffs_and_get_rmse(y_int_fixed_list, y_ext_list, ff_list):
 
 
 def translate_sentence(sentence, model, device, max_len=100,
-                       two_d=False):
+                       two_d=False, include_coeffs=False):
+    assert not (two_d and include_coeffs)
 
     model.eval()
 
@@ -183,8 +188,11 @@ def translate_sentence(sentence, model, device, max_len=100,
 
     if two_d:
         mapping = token_map_2d
+    elif include_coeffs:
+        mapping = token_map_with_coeffs
     else:
         mapping = token_map
+
     trg_indexes = [mapping['START']]
 
     for i in range(max_len):
@@ -201,7 +209,7 @@ def translate_sentence(sentence, model, device, max_len=100,
         if pred_token == mapping['END']:
             break
 
-    trg_tokens = get_eq_string(trg_indexes, two_d)
+    trg_tokens = get_eq_string(trg_indexes, two_d, include_coeffs)
 
     return trg_tokens, attention
 
