@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Apr 23, 2021
+LAST MODIFIED: May 4, 2021
 
 PURPOSE: Compute root mean squared error of functional forms
          output by neural network
@@ -36,6 +36,7 @@ x_ext = np.arange(3.1, 6.1, 0.1)
 
 rmse_int_list = []
 rmse_ext_list = []
+invalid_eq_list = []
 for i, (eq, y_int_fixed, y_ext) in enumerate(zip(eq_list, y_int_fixed_unnormalized_list, y_ext_unnormalized_list)):
     y_int = np.array(y_int_fixed).flatten()
 
@@ -48,15 +49,16 @@ for i, (eq, y_int_fixed, y_ext) in enumerate(zip(eq_list, y_int_fixed_unnormaliz
 
         if eq.is_valid():
             y_int_true_norm, true_min_, true_scale = normalize(y_int, return_params=True)
-            y_int_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_int).flatten(), true_min_, true_scale)
+            y_int_pred_norm = normalize(eq.f(x=x_int).flatten(), true_min_, true_scale)
 
             y_ext_true_norm = normalize(y_ext, true_min_, true_scale)
-            y_ext_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_ext).flatten(), true_min_, true_scale)
+            y_ext_pred_norm = normalize(eq.f(x=x_ext).flatten(), true_min_, true_scale)
 
             rmse_int = RMSE(y_int_true_norm, y_int_pred_norm)
             rmse_ext = RMSE(y_ext_true_norm, y_ext_pred_norm)
 
         else:
+            invalid_eq_list.append(eq.eq_str)
             rmse_int = np.inf
             rmse_ext = np.inf
 
@@ -64,4 +66,5 @@ for i, (eq, y_int_fixed, y_ext) in enumerate(zip(eq_list, y_int_fixed_unnormaliz
     rmse_ext_list.append(rmse_ext)
     print(i, rmse_int_list[-1], rmse_ext_list[-1])
 
+pd.DataFrame(invalid_eq_list).to_csv('invalid_eq_list.csv', index=False, header=None)
 pd.DataFrame([rmse_int_list, rmse_ext_list]).T.to_csv('02_rmse.csv', index=False, header=['rmse_int', 'rmse_ext'])
