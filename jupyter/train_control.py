@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Apr 20, 2021
+LAST MODIFIED: May 3, 2021
 
 PURPOSE: Script version of jupyter notebook of the same
          name.
@@ -10,6 +10,7 @@ NOTES: Only includes the training portion (no dataset generation)
 
 TODO:
 """
+from srvgd.utils.mse_loss_mask import mse_loss_mask
 from train import train
 from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
 
@@ -58,6 +59,10 @@ parser.add_argument('--include_coeffs', action='store_true',
                     help='If true, y2eq is expected to output '
                          'equations with coefficients not just '
                          'functional forms.')
+parser.add_argument('--include_coeff_values', action='store_true',
+                    help='If true, y2eq has an extra output unit '
+                         'that is used to pick the coefficient value. '
+                         '--include_coeffs must be used with the this cmd line arg')
 args = parser.parse_args()
 print(args)
 
@@ -107,7 +112,7 @@ train_data = torch.load(os.path.join('..', 'datasets', args.dataset), map_locati
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 # print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 
-train_loader, valid_loader, valid_idx, train_idx = dataset_loader(train_data, batch_size=args.batch_size, valid_size=0.30)
+train_loader, valid_loader, valid_idx, train_idx = dataset_loader(train_data, batch_size=args.batch_size, valid_size=0.67)#valid_size=0.30)
 
 if args.checkpoint is None:
     model = get_y2eq_model(device,
@@ -115,7 +120,8 @@ if args.checkpoint is None:
                            ENC_LAYERS=args.layers,
                            DEC_LAYERS=args.layers,
                            DEC_MAX_LENGTH=len(train_data[0][1]),
-                           include_coeffs=args.include_coeffs)
+                           include_coeffs=args.include_coeffs,
+                           include_coeff_values=args.include_coeff_values)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 else:
@@ -127,7 +133,8 @@ else:
                            ENC_LAYERS=args.layers,
                            DEC_LAYERS=args.layers,
                            DEC_MAX_LENGTH=len(train_data[0][1]),
-                           include_coeffs=args.include_coeffs)
+                           include_coeffs=args.include_coeffs,
+                           include_coeff_values=args.include_coeff_values)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     optimizer.load_state_dict(torch.load(os.path.join('..', 'models', 'optimizer{}.pt'.format(args.checkpoint)),
@@ -136,7 +143,13 @@ else:
 
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
-criterion = nn.CrossEntropyLoss(ignore_index=0)
+symbolic_loss = nn.CrossEntropyLoss(ignore_index=0)
+coeff_loss = mse_loss_mask
+
+if args.include_coeff_values:
+    criterion = [symbolic_loss, coeff_loss]
+else:
+    criterion = symbolic_loss
 
 epochs_filename = args.epochs
 
@@ -147,8 +160,9 @@ if args.checkpoint is not None:
 
 
 train(args.epochs, train_loader, valid_loader,
-      model, optimizer, criterion,
+      model, optimizer, [symbolic_loss, coeff_loss],
       args.clip, noise_Y=False, sigma=0.1,
       save_loc=os.path.join('..', 'models'),
-      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_includecoeffs{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.include_coeffs, epochs_filename),
-      with_x='with_x' in args.dataset)
+      save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_includecoeffs{}_includecoeffvalues{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.include_coeffs, args.include_coeff_values, epochs_filename),
+      with_x='with_x' in args.dataset,
+      include_coeff_values=args.include_coeff_values)
