@@ -18,16 +18,18 @@ import torch
 
 
 def mse_loss_mask(predicted, target, use_index):
-    out = (predicted[:, use_index]-target[:, use_index])**2
+    out = (predicted[use_index]-target[use_index])**2
     return out.mean()
 
 
 if __name__ == '__main__':
     import numpy as np
 
-    predicted = torch.Tensor([[1, 2]])
-    target = torch.Tensor([[1, np.nan]])
-    use_index = torch.LongTensor([0])
+    predicted = torch.Tensor([[1, 2],
+                              [3, 4]])
+    target = torch.Tensor([[1, np.nan],
+                           [np.nan, 4]])
+    use_index = torch.where(~torch.isnan(target))
 
     loss = mse_loss_mask(predicted, target, use_index)
     print('loss', loss)
