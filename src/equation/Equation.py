@@ -39,8 +39,9 @@ class Equation:
         if hasattr(self, 'f'):
             return self.f
 
-        for p in ['sin', 'exp', 'log']:
-            self.eq_str = self.eq_str.replace(p, 'np.'+p)
+        if 'np.' not in self.eq_str:
+            for p in ['sin', 'exp', 'log']:
+                self.eq_str = self.eq_str.replace(p, 'np.'+p)
 
         if 'c[' in self.eq_str:
             lambda_str_beg = 'lambda c, x: '
