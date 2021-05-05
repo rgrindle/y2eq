@@ -13,8 +13,11 @@ class Decoder(nn.Module):
                  dropout,
                  trg_pad_idx,
                  device,
-                 max_length=36):
+                 max_length=36,
+                 include_coeff_values=False):
         super().__init__()
+
+        self.include_coeff_values = include_coeff_values
 
         self.kernel_size = kernel_size
         self.trg_pad_idx = trg_pad_idx
@@ -32,6 +35,9 @@ class Decoder(nn.Module):
         self.attn_emb2hid = nn.Linear(emb_dim, hid_dim)
 
         self.fc_out = nn.Linear(emb_dim, output_dim)
+
+        if self.include_coeff_values:
+            self.coeff_value_out = nn.Linear(emb_dim, 1)
 
         self.convs = nn.ModuleList([nn.Conv1d(in_channels=hid_dim,
                                               out_channels=2*hid_dim,
@@ -144,4 +150,10 @@ class Decoder(nn.Module):
         output = self.fc_out((conved))
         # output = [batch size, trg len, output dim]
 
-        return output, attention
+        if self.include_coeff_values:
+            coeff_value_output = self.coeff_value_out(conved)
+
+            return output, attention, coeff_value_output
+
+        else:
+            return output, attention

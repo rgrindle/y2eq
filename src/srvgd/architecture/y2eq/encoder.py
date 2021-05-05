@@ -44,6 +44,7 @@ class Encoder(nn.Module):
 
         # create position tensor
         pos = torch.arange(0, src_len).unsqueeze(0).repeat(batch_size, 1).to(self.device)
+
         # pos = [0, 1, 2, 3, ..., src len - 1]
         # pos = [batch size, src len]
         # embed tokens and positions

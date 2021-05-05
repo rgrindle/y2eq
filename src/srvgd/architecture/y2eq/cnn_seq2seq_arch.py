@@ -2,11 +2,12 @@ import torch.nn as nn
 
 
 class Seq2Seq(nn.Module):
-    def __init__(self, encoder, decoder):
+    def __init__(self, encoder, decoder, include_coeff_values=False):
         super().__init__()
 
         self.encoder = encoder
         self.decoder = decoder
+        self.include_coeff_values = include_coeff_values
 
     def forward(self, src, trg):
 
@@ -26,9 +27,17 @@ class Seq2Seq(nn.Module):
         # output is a batch of predictions for each word in the trg sentence
         # attention a batch of attention scores across the src sentence for
         #  each word in the trg sentence
-        output, attention = self.decoder(trg, encoder_conved, encoder_combined)
+        if self.include_coeff_values:
+            token_output, attention, coeff_output = self.decoder(trg, encoder_conved, encoder_combined)
 
-        # output = [batch size, trg len - 1, output dim]
-        # attention = [batch size, trg len - 1, src len]
+            # output = [batch size, trg len - 1, output dim]
+            # attention = [batch size, trg len - 1, src len]
 
-        return output, attention
+            return token_output, attention, coeff_output
+        else:
+            output, attention = self.decoder(trg, encoder_conved, encoder_combined)
+
+            # output = [batch size, trg len - 1, output dim]
+            # attention = [batch size, trg len - 1, src len]
+
+            return output, attention
