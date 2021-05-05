@@ -96,6 +96,7 @@ def eval_y2eq(input_list, model_filename, **get_model_kwargs):
 
     two_d = get_model_kwargs['two_d'] if 'two_d' in get_model_kwargs else False
     include_coeffs = get_model_kwargs['include_coeffs'] if 'include_coeffs' in get_model_kwargs else False
+    include_coeff_values = get_model_kwargs['include_coeff_values'] if 'include_coeff_values' in get_model_kwargs else False
 
     predicted_data = []
     for i, input_ in enumerate(input_list):
@@ -104,18 +105,21 @@ def eval_y2eq(input_list, model_filename, **get_model_kwargs):
                                        model=model,
                                        device=device,
                                        two_d=two_d,
-                                       include_coeffs=include_coeffs)[0]
+                                       include_coeffs=include_coeffs,
+                                       include_coeff_values=include_coeff_values,
+                                       max_len=get_model_kwargs['DEC_MAX_LENGTH'])[0]
         predicted_data.append(predicted[5:-3])
         print(i, predicted_data[-1])
 
     pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
 
 
-def eval_plot2eq(input_list, model_filename, **get_model_kwargs):
+def eval_plot2eq(input_list, model_filename, include_coeffs, **get_model_kwargs):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     encoder, decoder = get_plot2eq_model(device=device,
                                          path='../models/',
                                          model_name=model_filename,
+                                         include_coeffs=include_coeffs,
                                          **get_model_kwargs)
 
     two_d = False if 'two_d' not in get_model_kwargs else get_model_kwargs['two_d']
@@ -123,7 +127,7 @@ def eval_plot2eq(input_list, model_filename, **get_model_kwargs):
     predicted_data = []
     for i, input_ in enumerate(input_list):
 
-        predicted = evaluate_one_image(input_, encoder, decoder, device, two_d)
+        predicted = evaluate_one_image(input_, encoder, decoder, device, two_d, include_coeffs)
         print(predicted)
         predicted_data.append(predicted)
         print(i, predicted_data[-1])
@@ -170,9 +174,12 @@ def fit_coeffs_and_get_rmse(y_int_fixed_list, y_ext_list, ff_list):
     pd.DataFrame([rmse_int_list, rmse_ext_list]).T.to_csv('02_rmse.csv', index=False, header=['rmse_int', 'rmse_ext'])
 
 
-def translate_sentence(sentence, model, device, max_len=100,
-                       two_d=False, include_coeffs=False):
+def translate_sentence(sentence, model, device, max_len=200,
+                       two_d=False, include_coeffs=False,
+                       include_coeff_values=False):
     assert not (two_d and include_coeffs)
+    if include_coeff_values:
+        assert include_coeffs
 
     model.eval()
 
@@ -193,28 +200,37 @@ def translate_sentence(sentence, model, device, max_len=100,
     else:
         mapping = token_map
 
-    trg_indexes = [mapping['START']]
+    pred_token_indices = [mapping['START']]
 
     for i in range(max_len):
 
-        trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
+        pred_token_tensor = torch.LongTensor(pred_token_indices).unsqueeze(0).to(device)
 
         with torch.no_grad():
-            output, attention = model.decoder(trg_tensor, encoder_conved, encoder_combined)
+            if include_coeff_values:
+                raw_token_output, attention, coeff_output = model.decoder(pred_token_tensor, encoder_conved, encoder_combined)
+                coeff_output = coeff_output.flatten().tolist()
+            else:
+                raw_token_output, attention = model.decoder(pred_token_tensor, encoder_conved, encoder_combined)
+                coeff_output = None
 
-        pred_token = output.argmax(2)[:, -1].item()
+        pred_token = raw_token_output.argmax(2)[:, -1].item()
 
-        trg_indexes.append(pred_token)
+        pred_token_indices.append(pred_token)
 
         if pred_token == mapping['END']:
             break
 
-    trg_tokens = get_eq_string(trg_indexes, two_d, include_coeffs)
+    pred_ff = get_eq_string(pred_token_indices, two_d=two_d,
+                            include_coeffs=include_coeffs,
+                            include_coeff_values=include_coeff_values,
+                            coeff_output=coeff_output)
 
-    return trg_tokens, attention
+    return pred_ff, attention
 
 
-def evaluate_one_image(image, encoder, decoder, device, two_d):
+def evaluate_one_image(image, encoder, decoder, device, two_d, include_coeffs):
+    assert not (two_d and include_coeffs)
 
     if type(image) != torch.Tensor:
         image = torch.Tensor(image)
@@ -232,6 +248,8 @@ def evaluate_one_image(image, encoder, decoder, device, two_d):
 
     if two_d:
         mapping = token_map_2d
+    elif include_coeffs:
+        mapping = token_map_with_coeffs
     else:
         mapping = token_map
 
@@ -243,11 +261,11 @@ def evaluate_one_image(image, encoder, decoder, device, two_d):
         prev_word, h, c = decode_one_token(decoder, prev_word, h, c, encoder_out)
         sentence.append(prev_word.item())
 
-        if step > 100 or prev_word == mapping['END']:
+        if step > 200 or prev_word == mapping['END']:
             break
         step += 1
 
-    return get_eq_string(sentence, two_d).replace('END', '')
+    return get_eq_string(sentence, two_d, include_coeffs).replace('END', '')
 
 
 def decode_one_token(decoder, prev_word, h, c, encoder_out):
