@@ -1,4 +1,4 @@
-from srvgd.updated_eqlearner.tokenization_rg import token_map, token_map_2d
+from srvgd.updated_eqlearner.tokenization_rg import token_map, token_map_2d, token_map_with_coeffs
 from srvgd.architecture.plot2eq.models import Encoder, Encoder_3d, DecoderWithAttention
 
 import torch
@@ -13,12 +13,18 @@ def get_plot2eq_model(model_name, path, device,
                       vocab_size=None,
                       dropout=0.25,
                       resnet_num=18,
-                      two_d=False):
-
+                      two_d=False,
+                      include_coeffs=False):
+    assert not (two_d and include_coeffs)
     encoder = Encoder_3d(resnet_num) if two_d else Encoder(resnet_num)
 
     if vocab_size is None:
-        vocab_size = len(token_map_2d) if two_d else len(token_map)
+        if two_d:
+            vocab_size = len(token_map_2d)
+        elif include_coeffs:
+            vocab_size = len(token_map_with_coeffs)
+        else:
+            vocab_size = len(token_map)
 
     decoder = DecoderWithAttention(attention_dim=attention_dim,
                                    embed_dim=emb_dim,

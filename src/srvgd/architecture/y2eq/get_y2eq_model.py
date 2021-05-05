@@ -23,7 +23,10 @@ def get_y2eq_model(device, path='models', load_weights=None,
                    ENC_MAX_LENGTH=30,
                    DEC_MAX_LENGTH=67,  # length of longest equation in terms of number of tokens
                    two_d=False,
-                   include_coeffs=False):
+                   include_coeffs=False,
+                   include_coeff_values=False):
+    if include_coeff_values:
+        assert include_coeffs
 
     if OUTPUT_DIM is None:
         if include_coeffs:
@@ -32,9 +35,9 @@ def get_y2eq_model(device, path='models', load_weights=None,
             OUTPUT_DIM = len(token_map_2d) if two_d else len(token_map)
 
     enc = Encoder(INPUT_DIM, EMB_DIM, HID_DIM, ENC_LAYERS, ENC_KERNEL_SIZE, ENC_DROPOUT, device, max_length=ENC_MAX_LENGTH)
-    dec = Decoder(OUTPUT_DIM, EMB_DIM, HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device, max_length=DEC_MAX_LENGTH)
+    dec = Decoder(OUTPUT_DIM, EMB_DIM, HID_DIM, DEC_LAYERS, DEC_KERNEL_SIZE, DEC_DROPOUT, TRG_PAD_IDX, device, max_length=DEC_MAX_LENGTH, include_coeff_values=include_coeff_values)
 
-    model = Seq2Seq(enc, dec).to(device)
+    model = Seq2Seq(enc, dec, include_coeff_values=include_coeff_values).to(device)
 
     if load_weights is not None:
         model.load_state_dict(torch.load(os.path.join(path, load_weights), map_location=device))
