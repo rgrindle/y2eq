@@ -28,6 +28,9 @@ parser.add_argument('--include_coeffs', action='store_true',
                     help='If true, y2eq is expected to output '
                          'equations with coefficients not just '
                          'functional forms.')
+parser.add_argument('--checkpoint', type=str,
+                    help='The file where a partially trained model is stored. '
+                         'Assumed to be in models/')
 args = parser.parse_args()
 print(args)
 
@@ -59,8 +62,6 @@ alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as i
 best_val_loss = float('inf')
 print_freq = 100  # print training/validation stats every __ batches
 # fine_tune_encoder = True  # fine-tune encoder?
-# checkpoint = '../../models/checkpoint_1000x_20.pt'  # path to checkpoint, None if none
-checkpoint = None
 pretrained = False
 resnet_num = 18
 image_size = (64, 64)
@@ -72,7 +73,7 @@ def main():
     Training and validation.
     """
 
-    global best_val_loss, epochs_since_improvement, checkpoint, start_epoch, epochs
+    global best_val_loss, epochs_since_improvement, start_epoch, epochs
 
     if args.include_coeffs:
         vocab_size = len(token_map_with_coeffs)
@@ -88,14 +89,14 @@ def main():
                                    encoder_dim=encoder.out_shape,
                                    dropout=dropout).to(device)
 
-    if checkpoint is None:
+    if args.checkpoint is None:
         decoder_optimizer = torch.optim.Adam(params=decoder.parameters(),
                                              lr=decoder_lr)
         encoder_optimizer = torch.optim.Adam(params=encoder.parameters(),
                                              lr=encoder_lr)
 
     else:
-        checkpoint = torch.load(checkpoint, map_location=device)
+        checkpoint = torch.load('../../models/'+args.checkpoint, map_location=device)
         start_epoch = checkpoint['epoch'] + 1
         epochs += start_epoch
         epochs_since_improvement = checkpoint['epochs_since_improvement']
