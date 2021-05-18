@@ -112,7 +112,10 @@ train_data = torch.load(os.path.join('..', 'datasets', args.dataset), map_locati
 print('train', len(train_data), len(train_data[0][0]), len(train_data[0][1]))
 # print('test', len(test_data), len(test_data[0][0]), len(test_data[0][1]))
 
-train_loader, valid_loader, valid_idx, train_idx = dataset_loader(train_data, batch_size=args.batch_size, valid_size=0.67)#valid_size=0.30)
+train_loader, valid_loader, valid_idx, train_idx = dataset_loader(train_data, batch_size=args.batch_size, valid_size=0.3)
+
+print('len(train_loader)', len(train_loader))
+print('len(valid_loader)', len(valid_loader))
 
 if args.checkpoint is None:
     model = get_y2eq_model(device,
@@ -160,7 +163,7 @@ if args.checkpoint is not None:
 
 
 train(args.epochs, train_loader, valid_loader,
-      model, optimizer, [symbolic_loss, coeff_loss],
+      model, optimizer, criterion,
       args.clip, noise_Y=False, sigma=0.1,
       save_loc=os.path.join('..', 'models'),
       save_end_name='_{}_batchsize{}_lr{}_clip{}_layers{}_includecoeffs{}_includecoeffvalues{}_{}'.format(args.dataset.replace('.pt', ''), args.batch_size, args.lr, args.clip, args.layers, args.include_coeffs, args.include_coeff_values, epochs_filename),
