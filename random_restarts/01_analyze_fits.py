@@ -61,14 +61,41 @@ for index in range(1000):
     # plt.show()
     within_percent_indices.append(within_percent_index)
 
-
-for within_percent_index in within_percent_indices:
-    plt.plot([within_percent_index]*2, plt.ylim(), 'k', alpha=0.1)
-
-for rmse_list in rmse_list_list:
-    plt.plot(rmse_list, color='C0', alpha=0.1)
-
-plt.yscale('log')
-plt.ylabel('Root mean squared error')
-plt.xlabel('Number of random restarts')
+plt.figure()
+plot_cdf(within_percent_indices, ymax=1., color='k')
+plt.xlabel('Num of random restarts')
+plt.ylabel('Fraction ff that have RMSE within final')
 plt.show()
+
+# for within_percent_index in within_percent_indices:
+    # plt.plot([within_percent_index]*2, plt.ylim(), 'k', alpha=0.1)
+
+# for rmse_list in rmse_list_list:
+#     plt.plot(rmse_list, color='C0', alpha=0.1)
+
+# plt.yscale('log')
+# plt.ylabel('Root mean squared error')
+# plt.xlabel('Number of random restarts')
+# plt.show()
+
+# rmse_arr = np.array(rmse_list_list)
+# print(rmse_arr.shape)
+
+# rr = [0, 9, 49, 99, 199, 299, 399, 499, 599, 699, 799, 899, 999]
+
+# import scipy.stats
+
+# at = [rmse_arr[:, r] for r in rr]
+
+# for i, a in enumerate(at[:-1]):
+
+#     result = scipy.stats.mannwhitneyu(a, at[-1], alternative='greater')
+#     print(rr[i]+1, '>', 1000, result)
+
+# labels = [str(r+1) for r in rr]
+# plt.boxplot(at, labels=labels)
+# # plt.yscale('log')
+# plt.ylim([0, 1])
+# plt.xlabel('Num random restarts')
+# plt.ylabel('min RMSE')
+# plt.show()

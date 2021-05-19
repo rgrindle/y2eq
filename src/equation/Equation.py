@@ -113,16 +113,16 @@ class Equation:
 
         rmse_list = []
         coeffs_list = []
-        for _ in range(10):
+        for _ in range(150):
             coeffs, rmse = self.regression(y, init_guess_type='random')
 
             rmse_list.append(rmse)
             coeffs_list.append(coeffs)
 
-        coeffs, rmse = self.regression(y, init_guess_type='ones')
+        # coeffs, rmse = self.regression(y, init_guess_type='ones')
 
-        rmse_list.append(rmse)
-        coeffs_list.append(coeffs)
+        # rmse_list.append(rmse)
+        # coeffs_list.append(coeffs)
 
         if np.all(np.isnan(rmse_list)):
             self.coeffs = coeffs_list[0]
