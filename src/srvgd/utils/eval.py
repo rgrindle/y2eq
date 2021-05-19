@@ -16,6 +16,9 @@ from srvgd.data_gathering.get_normal_x import get_normal_x
 from srvgd.architecture.y2eq.get_y2eq_model import get_y2eq_model
 from srvgd.architecture.plot2eq.get_plot2eq_model import get_plot2eq_model
 from srvgd.utils.rmse import RMSE
+from srvgd.architecture.transformer.y2eq_transformer import y2eq_trans_model
+from srvgd.architecture.transformer.plot2eq_transformer import plot2eq_trans_model
+
 
 import torch
 import numpy as np
@@ -114,6 +117,42 @@ def eval_y2eq(input_list, model_filename, **get_model_kwargs):
     pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
 
 
+def eval_y2eq_transformer(input_list, model_filename, **get_model_kwargs):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    model_dict = torch.load('../models/'+model_filename, map_location=device)
+    y2eq_trans_model.load_state_dict(model_dict['state_dict'])
+
+    predicted_data = []
+    for i, input_ in enumerate(input_list):
+
+        predicted = get_eq_y2eq_transformer(sentence=input_,
+                                            model=y2eq_trans_model,
+                                            device=device)
+        predicted_data.append(predicted[5:-3])
+        print(i, predicted_data[-1])
+
+    pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
+
+
+def eval_plot2eq_transformer(input_list, model_filename, **get_model_kwargs):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    model_dict = torch.load('../models/'+model_filename, map_location=device)
+    plot2eq_trans_model.load_state_dict(model_dict['state_dict'])
+
+    predicted_data = []
+    for i, input_ in enumerate(input_list):
+
+        predicted = get_eq_plot2eq_transformer(sentence=input_,
+                                               model=plot2eq_trans_model,
+                                               device=device)
+        predicted_data.append(predicted[5:-3])
+        print(i, predicted_data[-1])
+
+    pd.DataFrame(predicted_data).to_csv('01_predicted_ff.csv', index=False, header=None)
+
+
 def eval_plot2eq(input_list, model_filename, include_coeffs, **get_model_kwargs):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     encoder, decoder = get_plot2eq_model(device=device,
@@ -172,6 +211,115 @@ def fit_coeffs_and_get_rmse(y_int_fixed_list, y_ext_list, ff_list):
         print(i, rmse_int_list[-1], rmse_ext_list[-1])
 
     pd.DataFrame([rmse_int_list, rmse_ext_list]).T.to_csv('02_rmse.csv', index=False, header=['rmse_int', 'rmse_ext'])
+
+
+def fit_coeffs_and_get_rmse_vacc(index, y_int_fixed_list, y_ext_list, ff_list):
+    x_int = np.arange(0.1, 3.1, 0.1)
+    x_ext = np.arange(3.1, 6.1, 0.1)
+
+    rmse_int_list = []
+    rmse_ext_list = []
+    i = index
+    ff = ff_list[index]
+    y_int_fixed = y_int_fixed_list[index]
+    y_ext = y_ext_list[index]
+    # for i, (ff, y_int_fixed, y_ext) in enumerate(zip(ff_list, y_int_fixed_list, y_ext_list)):
+    y_int = np.array(y_int_fixed).flatten()
+
+    if pd.isnull(ff):
+        rmse_int = np.inf
+        rmse_ext = np.inf
+
+    else:
+        eq = EquationInfix(ff, x=x_int)
+
+        if eq.is_valid():
+            eq.fit(y_int)
+
+            y_int_true_norm, true_min_, true_scale = normalize(y_int, return_params=True)
+            y_int_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_int).flatten(), true_min_, true_scale)
+
+            y_ext_true_norm = normalize(y_ext, true_min_, true_scale)
+            y_ext_pred_norm = normalize(eq.f(c=eq.coeffs, x=x_ext).flatten(), true_min_, true_scale)
+
+            rmse_int = RMSE(y_int_true_norm, y_int_pred_norm)
+            rmse_ext = RMSE(y_ext_true_norm, y_ext_pred_norm)
+
+        else:
+            rmse_int = np.inf
+            rmse_ext = np.inf
+
+    rmse_int_list.append(rmse_int)
+    rmse_ext_list.append(rmse_ext)
+    print(i, rmse_int_list[-1], rmse_ext_list[-1])
+
+    pd.DataFrame([rmse_int_list, rmse_ext_list]).T.to_csv('02_rmse_index{}.csv'.format(index), index=False, header=['rmse_int', 'rmse_ext'])
+
+
+def get_eq_y2eq_transformer(sentence, model, device,
+                            max_len=99):
+    model.eval()
+
+    if type(sentence) != torch.Tensor:
+        src_tensor = torch.Tensor(sentence).to(device)
+    else:
+        src_tensor = sentence.to(device)
+
+    src_tensor = src_tensor.unsqueeze(0)
+
+    mapping = token_map
+    pred_token_indices = [mapping['START']]
+
+    with torch.no_grad():
+        for i in range(max_len):
+            pred_token_tensor = torch.LongTensor(pred_token_indices+[mapping['END']]).unsqueeze(0).to(device)
+
+            raw_token_output = model(src_tensor, pred_token_tensor)
+            raw_token_output = raw_token_output.permute(1, 0, 2)
+
+            pred_token = raw_token_output.argmax(2)[:, -1].item()
+
+            pred_token_indices.append(pred_token)
+
+            if pred_token == mapping['END']:
+                break
+
+    pred_ff = get_eq_string(pred_token_indices)
+
+    return pred_ff
+
+
+def get_eq_plot2eq_transformer(sentence, model, device,
+                               max_len=99):
+    model.eval()
+
+    if type(sentence) != torch.Tensor:
+        src_tensor = torch.Tensor(sentence).to(device)
+    else:
+        src_tensor = sentence.to(device)
+
+    src_tensor = src_tensor.unsqueeze(0)
+
+    mapping = token_map
+    pred_token_indices = [mapping['START']]
+
+    with torch.no_grad():
+        for i in range(max_len):
+            pred_token_tensor = torch.LongTensor(pred_token_indices+[mapping['END']]).unsqueeze(0).to(device)
+
+            raw_token_output = model(src_tensor, pred_token_tensor)
+            raw_token_output = raw_token_output.permute(1, 0, 2)
+
+            pred_token = raw_token_output.argmax(2)[:, -1].item()
+
+            pred_token_indices.append(pred_token)
+
+            if pred_token == mapping['END']:
+                break
+
+    pred_ff = get_eq_string(pred_token_indices)
+
+    return pred_ff
 
 
 def translate_sentence(sentence, model, device, max_len=200,
