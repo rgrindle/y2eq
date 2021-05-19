@@ -6,7 +6,8 @@ import torch
 import os
 
 
-def get_plot2eq_model(model_name, path, device,
+def get_plot2eq_model(model_name=None, path='models/',
+                      device=torch.device('cpu'),
                       emb_dim=512,
                       attention_dim=512,
                       decoder_dim=512,
@@ -41,3 +42,14 @@ def get_plot2eq_model(model_name, path, device,
         decoder.load_state_dict(checkpoint['decoder'])
 
     return encoder, decoder
+
+
+if __name__ == '__main__':
+
+    encoder, decoder = get_plot2eq_model()
+
+    def get_num_params(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    num_params = get_num_params(encoder) + get_num_params(decoder)
+    print('Num trainable params:', num_params)

@@ -43,3 +43,10 @@ def get_y2eq_model(device, path='models', load_weights=None,
         model.load_state_dict(torch.load(os.path.join(path, load_weights), map_location=device))
 
     return model
+
+
+if __name__ == '__main__':
+
+    model = get_y2eq_model(torch.device('cpu'))
+    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print('Num trainable params:', num_params)
