@@ -64,8 +64,8 @@ def numberize_tokens(tokens, two_d, include_coeffs):
 
 
 def extract_tokens(string, group_minus_signs=False):
-    string = string.replace('START', '').replace('END', '')
-    extracted_tokens = ['START']+[elem.string for elem in tokenize.tokenize(BytesIO(string.encode('utf-8')).readline)]+['END']
+    string_ = string.replace('START', '').replace('END', '')
+    extracted_tokens = ['START']+[elem.string for elem in tokenize.tokenize(BytesIO(string_.encode('utf-8')).readline)]+['END']
     extracted_tokens.remove('utf-8')
     extracted_tokens = [e for e in extracted_tokens if e != '']
 
@@ -90,9 +90,9 @@ def extract_tokens(string, group_minus_signs=False):
     return extracted_tokens
 
 
-def tokenize_eq(eq_str, two_d=False):
+def tokenize_eq(eq_str, two_d=False, include_coeffs=False):
     extracted_tokens = extract_tokens(eq_str)
-    return numberize_tokens(extracted_tokens, two_d)
+    return numberize_tokens(extracted_tokens, two_d, include_coeffs)
 
 
 def get_eq_string(numberized_tokens, two_d=False, include_coeffs=False,
