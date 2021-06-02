@@ -33,7 +33,7 @@ def write_x_y_lists(eq_list_filename, x_type):
 
     np.random.seed(0)
 
-    eq_list = pd.read_csv('../datasets/equations_with_coeff_test_ff1000.csv', header=None).values.flatten()
+    eq_list = pd.read_csv(eq_list_filename, header=None).values.flatten()
 
     if x_type == 'fixed':
         x_int = np.arange(0.1, 3.1, 0.1)
