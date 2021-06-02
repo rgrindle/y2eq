@@ -30,10 +30,6 @@ def get_nn_loss_batch(batch, model, device, criterion):
     # Forward prop
     output = model(inp_data, target)
 
-    # output_eq = get_eq_y2eq_transformer(sentence=inp_data[0],
-    #                                     model=model,
-    #                                     device=device)
-    # print(output_eq)
     pred_token_indices = output.permute(1, 0, 2).argmax(2).tolist()
     for i, raw_eq in enumerate(pred_token_indices):
         pred_ff = get_eq_string(raw_eq)
@@ -52,14 +48,15 @@ def get_nn_loss_batch(batch, model, device, criterion):
     return loss
 
 
-def train_one_epoch(train_iterator, model, device, criterion, optimizer):
+def train_one_epoch(train_iterator, model, device, criterion, optimizer,
+                    get_nn_loss_batch_=get_nn_loss_batch):
     print('TRAINING')
     model.train()
     losses = []
     for batch_idx, batch in enumerate(train_iterator):
         print('.', flush=True, end='', sep='')
         optimizer.zero_grad()
-        loss = get_nn_loss_batch(batch, model, device, criterion)
+        loss = get_nn_loss_batch_(batch, model, device, criterion)
         losses.append(loss.item())
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
@@ -70,13 +67,14 @@ def train_one_epoch(train_iterator, model, device, criterion, optimizer):
     return mean_loss
 
 
-def valid_one_epoch(valid_iterator, model, device, criterion):
+def valid_one_epoch(valid_iterator, model, device, criterion,
+                    get_nn_loss_batch_=get_nn_loss_batch):
     print('EVALUATING')
     model.eval()
     losses = []
     for batch_idx, batch in enumerate(valid_iterator):
         print('.', flush=True, end='', sep='')
-        loss = get_nn_loss_batch(batch, model, device, criterion)
+        loss = get_nn_loss_batch_(batch, model, device, criterion)
         losses.append(loss.item())
 
     print('')
@@ -113,13 +111,12 @@ def split_dataset(dataset, batch_size=32):
 
 def train_many_epochs(train_iterator, valid_iterator,
                       model, device, model_name,
-                      learning_rate=3e-4, num_epochs=100):
+                      learning_rate=3e-4, num_epochs=100,
+                      criterion=nn.CrossEntropyLoss(ignore_index=token_map['']),
+                      get_nn_loss_batch_=get_nn_loss_batch):
     assert model_name[-3:] == '.pt'
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-    # Ignore loss when target indicates padding
-    criterion = nn.CrossEntropyLoss(ignore_index=token_map[''])
 
     train_losses = []
     valid_losses = []
@@ -127,10 +124,10 @@ def train_many_epochs(train_iterator, valid_iterator,
     for epoch in range(num_epochs):
         print(f"[Epoch {epoch} / {num_epochs}]")
 
-        train_loss = train_one_epoch(train_iterator, model, device, criterion, optimizer)
+        train_loss = train_one_epoch(train_iterator, model, device, criterion, optimizer, get_nn_loss_batch_)
         train_losses.append(train_loss)
 
-        valid_loss = valid_one_epoch(valid_iterator, model, device, criterion)
+        valid_loss = valid_one_epoch(valid_iterator, model, device, criterion, get_nn_loss_batch_)
         valid_losses.append(valid_loss)
 
         print('train_loss:', train_loss)
