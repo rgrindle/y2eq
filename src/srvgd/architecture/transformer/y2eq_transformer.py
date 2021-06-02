@@ -50,7 +50,6 @@ class y2eqTransformer(nn.Module):
 
     def forward(self, src, trg):
         src_embedding = self.src_word_embedding(src)
-        print(src_embedding.shape)
         trg_embedding = self.trg_word_embedding(trg)
         return self.transformer(src_embedding, trg_embedding)
 
