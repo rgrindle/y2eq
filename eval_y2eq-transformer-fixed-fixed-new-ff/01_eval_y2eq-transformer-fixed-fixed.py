@@ -1,9 +1,9 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jun 1, 2021
+LAST MODIFIED: May 4, 2021
 
-PURPOSE: Evaluate y2eq-no-coeffs-fixed-fixed and save functional form.
+PURPOSE: Evaluate y2eq-transformer-fixed-fixed and save functional form.
 
 NOTES:
 

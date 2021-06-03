@@ -1,9 +1,9 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jun 1, 2021
+LAST MODIFIED: May 4, 2021
 
-PURPOSE: Get x and y to be used to evaluate y2eq-no-coeffs-fixed-fixed.
+PURPOSE: Get x and y to be used to evaluate y2eq-transformer-fixed-fixed.
 
 NOTES:
 
