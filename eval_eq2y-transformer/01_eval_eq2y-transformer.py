@@ -17,7 +17,7 @@ import pandas as pd
 
 import json
 
-ff_list = pd.read_csv('../datasets/equations_with_coeff_test_ff1000_no_coeffs.csv', header=None).values.flatten()
+ff_list = pd.read_csv('../datasets/test_ff_list.csv', header=None).values.flatten()
 ff_list = [tokenize_eq(ff) for ff in ff_list]
 
 # pad
