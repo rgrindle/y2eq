@@ -113,14 +113,24 @@ def train_many_epochs(train_iterator, valid_iterator,
                       model, device, model_name,
                       learning_rate=3e-4, num_epochs=100,
                       criterion=nn.CrossEntropyLoss(ignore_index=token_map['']),
-                      get_nn_loss_batch_=get_nn_loss_batch):
+                      get_nn_loss_batch_=get_nn_loss_batch,
+                      train_losses=None, valid_losses=None,
+                      optimizer_state_dict=None):
     assert model_name[-3:] == '.pt'
 
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    if optimizer_state_dict is not None:
+        optimizer.load_state_dict(optimizer_state_dict)
 
-    train_losses = []
-    valid_losses = []
-    min_valid_loss = float('inf')
+    if train_losses is None:
+        train_losses = []
+
+    if valid_losses is None:
+        valid_losses = []
+        min_valid_loss = float('inf')
+    else:
+        min_valid_loss = min(valid_losses)
+
     for epoch in range(num_epochs):
         print(f"[Epoch {epoch} / {num_epochs}]")
 
