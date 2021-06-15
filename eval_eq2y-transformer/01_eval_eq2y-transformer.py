@@ -31,7 +31,7 @@ print(ff_list.shape)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model_dict = torch.load('../models/BEST_eq2y_transformer.pt',
+model_dict = torch.load('../models/BEST_eq2y_transformer_3300.pt',
                         map_location=device)
 eq2y_trans_model.load_state_dict(model_dict['state_dict'])
 
