@@ -77,6 +77,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 plot2eq_trans_model = plot2eqTransformer().to(device)
 
 if __name__ == '__main__':
+    checkpoint_filename = 'BEST_plot2eq_transformer.pt'
+
     # Get number of trainable parameters
     num_params = sum(p.numel() for p in plot2eq_trans_model.parameters() if p.requires_grad)
     print('Num trainable params:', num_params)
@@ -88,11 +90,22 @@ if __name__ == '__main__':
     print(len(dataset))
     train_iterator, valid_iterator = split_dataset(dataset)
 
-    # if load_model:
-    #     load_checkpoint(torch.load("my_checkpoint.pth.tar"), plot2eq_trans_model, optimizer)
+    model_name = 'plot2eq_transformer.pt'
+    kwargs = {}
+    if checkpoint_filename is not None:
+        checkpoint = torch.load('../../../../models/'+checkpoint_filename,
+                                map_location=device)
+        plot2eq_trans_model.load_state_dict(checkpoint['state_dict'])
+
+        model_name = 'plot2eq_transformer_1400.pt'
+        kwargs = {'train_losses': checkpoint['train_loss'],
+                  'valid_losses': checkpoint['val_loss'],
+                  'optimizer_state_dict': checkpoint['optimizer']}
 
     train_many_epochs(train_iterator=train_iterator,
                       valid_iterator=valid_iterator,
                       model=plot2eq_trans_model,
                       device=device,
-                      model_name='plot2eq_transformer.pt')
+                      model_name=model_name,
+                      num_epochs=1300,
+                      **kwargs)

@@ -58,7 +58,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 y2eq_trans_model = y2eqTransformer().to(device)
 
 if __name__ == '__main__':
-    # load_model = 'y2eq_transformer.pt'
+    checkpoint_filename = 'BEST_y2eq_transformer.pt'
 
     # Get number of trainable parameters
     num_params = sum(p.numel() for p in y2eq_trans_model.parameters() if p.requires_grad)
@@ -69,14 +69,22 @@ if __name__ == '__main__':
     dataset = get_dataset(dataset_name, device)
     train_iterator, valid_iterator = split_dataset(dataset)
 
-    # if load_model is not None:
-    #     checkpoint = torch.load('../../../models/'+load_model, map_location=device)
-    #     print(checkpoint.keys())
-    #     exit()
-    #     y2eq_trans_model.load_state_dict(checkpoint[''])
+    model_name = 'y2eq_transformer.pt'
+    kwargs = {}
+    if checkpoint_filename is not None:
+        checkpoint = torch.load('../../../../models/'+checkpoint_filename,
+                                map_location=device)
+        y2eq_trans_model.load_state_dict(checkpoint['state_dict'])
+
+        model_name = 'y2eq_transformer_1400.pt'
+        kwargs = {'train_losses': checkpoint['train_loss'],
+                  'valid_losses': checkpoint['val_loss'],
+                  'optimizer_state_dict': checkpoint['optimizer']}
 
     train_many_epochs(train_iterator=train_iterator,
                       valid_iterator=valid_iterator,
                       model=y2eq_trans_model,
                       device=device,
-                      model_name='y2eq_transformer.pt')
+                      model_name=model_name,
+                      num_epochs=100,
+                      **kwargs)

@@ -104,7 +104,7 @@ def get_nn_loss_batch_eq2y(batch, model, device, criterion):
 
 
 if __name__ == '__main__':
-    checkpoint_filename = 'BEST_eq2y_transformer.pt'
+    checkpoint_filename = 'BEST_eq2y_transformer_2000.pt'
     # checkpoint_filename = None
 
     # Get number of trainable parameters
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                                 map_location=device)
         eq2y_trans_model.load_state_dict(checkpoint['state_dict'])
 
-        model_name = 'eq2y_transformer_200.pt'
+        model_name = 'eq2y_transformer_3300.pt'
         kwargs = {'train_losses': checkpoint['train_loss'],
                   'valid_losses': checkpoint['val_loss'],
                   'optimizer_state_dict': checkpoint['optimizer']}
@@ -135,5 +135,6 @@ if __name__ == '__main__':
                       device=device,
                       model_name=model_name,
                       criterion=torch.nn.MSELoss(),
+                      num_epochs=1300,
                       get_nn_loss_batch_=get_nn_loss_batch_eq2y,
                       **kwargs)
