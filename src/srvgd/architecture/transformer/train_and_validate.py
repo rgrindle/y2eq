@@ -94,8 +94,8 @@ def get_dataset(dataset_name, device):
     return dataset
 
 
-def split_dataset(dataset, batch_size=32):
-    train_dataset, valid_dataset = random_split(dataset, [35000, 15000], generator=torch.Generator().manual_seed(42))
+def split_dataset(dataset, split=(35000, 15000), batch_size=32):
+    train_dataset, valid_dataset = random_split(dataset, split, generator=torch.Generator().manual_seed(42))
     print('train_dataset', len(train_dataset))
     print('valid_dataset', len(valid_dataset))
 
