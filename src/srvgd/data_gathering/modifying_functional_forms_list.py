@@ -81,8 +81,7 @@ def fix_ff(ff):
                 elif char_of_interest.isdigit():
                     corrected[i] = str(int(char_of_interest)+1)
                 else:
-                    print('This is a situation not concidered', ff)
-                    exit()
+                    raise Exception('This is a situation not concidered', ff)
             else:
                 corrected[i] = 'x'
 
