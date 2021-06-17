@@ -30,30 +30,36 @@ def offset(data):
     return np.array([data[(i+1) % len(data)] for i, x in enumerate(data)])
 
 
+min_list = np.array([np.inf]*100)
+ind_list = np.array([None]*100)
+
+i_max = np.argmax(min_list)
+
+
+def check_if_min(index, value):
+    global min_list, ind_list, i_max
+
+    if value < min_list[i_max]:
+        min_list[i_max] = value
+        ind_list[i_max] = index
+        i_max = np.argmax(min_list)
+
+
 dataset = torch.load('../../datasets/dataset_train_ff1000.pt')
 Y = np.squeeze([d[0].tolist() for d in dataset])
 print(Y.shape)
 
-error_mat = np.zeros((50000, 50000))
+offset_Y = Y
+for o in range(50000):
+    print(o)
+    offset_Y = offset(offset_Y)
+    if o == 0:
+        error_list = RMSE_many(Y, offset_Y)
+    else:
+        error_list = RMSE_many(Y[:-o], offset_Y[:-o])
+    for j, error in enumerate(error_list):
+        i = j + o
+        check_if_min(index=(i, j), value=error)
 
-# offset_Y = Y
-# for o in range(50000):
-#     print(o)
-#     offset_Y = offset(offset_Y)
-#     if o == 0:
-#         error_list = RMSE_many(Y, offset_Y)
-#     else:
-#         error_list = RMSE_many(Y[:-o], offset_Y[:-o])
-#     for j, error in enumerate(error_list):
-#         i = j + o
-#         error_mat[i, j] = error_mat[j, i] = error
-
-# pd.DataFrame(error_mat).to_csv('error_mat_test.csv', index=False, header=None)
-# np.save('error_mat_test.npy', error_mat, allow_pickle=False)
-
-inf_indices = np.triu_indices(50)
-print(inf_indices)
-exit()
-import h5py
-with h5py.File('error_mat_test.hdf5', 'w') as f:
-    dset = f.create_dataset('error_mat', data=error_mat)
+pd.DataFrame(min_list).to_csv('min_list.csv', index=False, header=None)
+pd.DataFrame(ind_list).to_csv('ind_list.csv', index=False, header=None)
