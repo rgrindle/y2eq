@@ -64,7 +64,7 @@ def get_dataset(x, ff_list, dataset_size,
                     if normalized_Y not in dataset_inputs and normalized_Y not in other_dataset_inputs:
                         dataset_inputs.append(normalized_Y)
                         tokenized_ff = tokenize_eq(ff)
-                        dataset_outputs.append(torch.Tensor(tokenized_ff))
+                        dataset_outputs.append(tokenized_ff)
                         eq_with_coeff_list.append(eq.place_exact_coeffs(coeffs))
 
                         print('.', flush=True, end='')
@@ -82,21 +82,19 @@ def get_dataset(x, ff_list, dataset_size,
 def save(dataset_inputs, dataset_outputs, eq_with_coeff_list, save_name):
     save_loc = os.path.join('..', '..', '..', 'datasets')
 
-    inputs_tensor = torch.zeros(len(dataset_inputs), 30)
-    for i, y in enumerate(dataset_inputs):
-        inputs_tensor[i, :] = torch.Tensor(y)
-
     filename = 'equations_with_coeff'+save_name+'.csv'
     pd.DataFrame(eq_with_coeff_list).to_csv(os.path.join(save_loc, filename),
                                             index=False, header=None)
 
+    inputs_tensor = torch.Tensor(dataset_inputs)
+
     # pad dataset_output
     max_len = max([len(out) for out in dataset_outputs])
-    padded_dataset_outputs = []
     for i, out in enumerate(dataset_outputs):
         dataset_outputs[i] = out+[0]*(max_len-len(out))
+    dataset_outputs = torch.LongTensor(dataset_outputs)
 
-    dataset = TensorDataset(inputs_tensor, padded_dataset_outputs)
+    dataset = TensorDataset(inputs_tensor, dataset_outputs)
     torch.save(dataset, os.path.join(save_loc, 'dataset'+save_name+'.pt'))
 
 
