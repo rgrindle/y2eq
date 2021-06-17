@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import mannwhitneyu
 
 # get lengths of output equations
-pred_ff_list = pd.read_csv('../../eval_y2eq-transformer-fixed-fixed/01_predicted_ff.csv').values.flatten()
+pred_ff_list = pd.read_csv('../../eval_y2eq-transformer-fixed-fixed-ones-noBFGS/01_predicted_ff.csv').values.flatten()
 print(pred_ff_list)
 
 pred_tok_ff_list = [tokenize_eq(ff) for ff in pred_ff_list]
