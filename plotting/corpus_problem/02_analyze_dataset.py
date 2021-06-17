@@ -1,12 +1,16 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: June 15, 2021
+LAST MODIFIED: June 17, 2021
 
 PURPOSE: Can I find examples of equations that already
          exist in my current dataset that are similar?
 
-NOTES:
+NOTES: In the 01 script, i (first number in each element
+       of ind_list) should actual start at one not at zero.
+       Currently, this is fixed by adding one to i in this
+       scirpt (02) but if I ever need to run the 01 script
+       again I should update i in both scripts for clarity.
 
 TODO:
 """
