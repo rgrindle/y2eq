@@ -9,6 +9,7 @@ NOTES:
 
 TODO:
 """
+from equation.EquationInfix import EquationInfix
 from srvgd.updated_eqlearner.DatasetCreatorRG import DatasetCreatorRG
 from modifying_functional_forms_list import fix_ff
 
@@ -18,6 +19,16 @@ from sympy import sin, log, exp, Symbol
 
 SEED = 1234
 np.random.seed(SEED)
+x_int = np.arange(0.1, 3.1, 0.1)
+
+
+def acceptible_ff(ff_str):
+    f = EquationInfix(ff_str, apply_coeffs=False).f
+    y = f(x_int)
+    no_nans = np.all(np.logical_not(np.isnan(y)))
+    y_values_in_range = np.max(np.abs(y)) <= 1000
+    not_const = np.min(y) != np.max(y)
+    return no_nans and y_values_in_range and not_const
 
 
 if __name__ == '__main__':
@@ -40,22 +51,38 @@ if __name__ == '__main__':
 
         ff_str = str(ff).replace(' ', '')
 
+        if 'E' in ff_str:
+            # If ff_str contains E (sympy's number e)
+            # then it breaks our rule that says ff's
+            # do not contain any coefficients other than
+            # 1. Fixing the functional form by removing E
+            # is difficult in some cases e.g. E*x + x should
+            # become x, but simply removing E* would result
+            # in 2*x which contains another coefficient. There
+            # are even more complex examples that include composite
+            # functions...
+            continue
+
         try:
             ff_str = fix_ff(ff_str)
         except Exception as e:
             if 'This is a situation not concidered' in str(e):
                 continue
             else:
+                print('ff_str =', ff_str)
                 print('Unexpected exception caught:', str(e))
+                exit()
 
         if ff_str == '0':
             continue
 
-        elif ff not in ff_list:
-            ff_list.append(ff_str)
-            num_ff += 1
-            print(num_ff)
+        elif ff_str not in ff_list:
+            if acceptible_ff(ff_str):
+                ff_list.append(ff_str)
+                num_ff += 1
+                print(num_ff)
 
+    # print(len(ff_list), len(np.unique(ff_list)))
     pd.DataFrame(ff_list).to_csv('get_functional_forms.csv',
                                  header=None,
                                  index=False)
