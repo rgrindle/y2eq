@@ -104,8 +104,8 @@ def get_nn_loss_batch_eq2y(batch, model, device, criterion):
 
 
 if __name__ == '__main__':
-    # checkpoint_filename = 'BEST_eq2y_transformer_2000.pt'
-    checkpoint_filename = None
+    checkpoint_filename = 'eq2y_transformer_more_ff_2000.pt'
+    # checkpoint_filename = None
 
     # Get number of trainable parameters
     num_params = sum(p.numel() for p in eq2y_trans_model.parameters() if p.requires_grad)
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                                 map_location=device)
         eq2y_trans_model.load_state_dict(checkpoint['state_dict'])
 
-        model_name = 'eq2y_transformer_more_ff_3300.pt'
+        model_name = 'eq2y_transformer_more_ff_4000.pt'
         kwargs = {'train_losses': checkpoint['train_loss'],
                   'valid_losses': checkpoint['val_loss'],
                   'optimizer_state_dict': checkpoint['optimizer']}
