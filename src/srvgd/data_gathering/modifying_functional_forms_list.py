@@ -63,8 +63,8 @@ def fix_ff(ff):
         if char.isdigit() and ff[i+1:i+3] == '*x':
             problem_indices.append(i)
 
-    if 'exp' not in ff == 1:
-        return ff.replace(ff[problem_indices[0]]+'*', '')
+    if 'exp' not in ff or len(problem_indices) == 0:
+        return ff
     else:
         corrected = {i: None for i in problem_indices}
         for i in reversed(problem_indices):
