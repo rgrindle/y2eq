@@ -17,7 +17,7 @@ import pandas as pd
 
 import json
 
-ff_list = pd.read_csv('../datasets/test_ff_list.csv', header=None).values.flatten()
+ff_list = pd.read_csv('../datasets/equations_with_coeff_test_ff32000_no_coeffs.csv', header=None).values.flatten()
 ff_list = [tokenize_eq(ff) for ff in ff_list]
 
 # pad
@@ -31,7 +31,7 @@ print(ff_list.shape)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-model_dict = torch.load('../models/BEST_eq2y_transformer_3300.pt',
+model_dict = torch.load('../models/eq2y_transformer.pt',
                         map_location=device)
 eq2y_trans_model.load_state_dict(model_dict['state_dict'])
 
