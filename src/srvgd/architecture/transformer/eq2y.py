@@ -1,9 +1,9 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: May 24, 2021
+LAST MODIFIED: Jul 1, 2021
 
-PURPOSE: Create eq2y as a transformer
+PURPOSE: Create and train eq2y (a transformer)
 
 NOTES:
 
@@ -104,7 +104,7 @@ def get_nn_loss_batch_eq2y(batch, model, device, criterion):
 
 
 if __name__ == '__main__':
-    checkpoint_filename = 'BEST_eq2y_transformer_2000.pt'
+    checkpoint_filename = 'BEST_eq2y_transformer.pt'
     # checkpoint_filename = None
 
     # Get number of trainable parameters
@@ -112,10 +112,11 @@ if __name__ == '__main__':
     print('Num trainable params:', num_params)
 
     # Get dataset
-    dataset_name = 'dataset_train_ff1000_no_coeffs.pt'
+    dataset_name = 'dataset_train_ff32000_no_coeffs.pt'
     dataset = get_dataset(dataset_name, device)
 
-    train_iterator, valid_iterator = split_dataset(dataset)
+    train_iterator, valid_iterator = split_dataset(dataset,
+                                                   split=(22400, 9600))
 
     model_name = 'eq2y_transformer.pt'
     kwargs = {}
@@ -124,7 +125,7 @@ if __name__ == '__main__':
                                 map_location=device)
         eq2y_trans_model.load_state_dict(checkpoint['state_dict'])
 
-        model_name = 'eq2y_transformer_3300.pt'
+        model_name = 'eq2y_transformer_3000.pt'
         kwargs = {'train_losses': checkpoint['train_loss'],
                   'valid_losses': checkpoint['val_loss'],
                   'optimizer_state_dict': checkpoint['optimizer']}
@@ -135,6 +136,6 @@ if __name__ == '__main__':
                       device=device,
                       model_name=model_name,
                       criterion=torch.nn.MSELoss(),
-                      num_epochs=1300,
+                      num_epochs=2000,
                       get_nn_loss_batch_=get_nn_loss_batch_eq2y,
                       **kwargs)
