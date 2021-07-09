@@ -82,7 +82,11 @@ if __name__ == '__main__':
                 num_ff += 1
                 print(num_ff)
 
-    # print(len(ff_list), len(np.unique(ff_list)))
-    pd.DataFrame(ff_list).to_csv('get_functional_forms.csv',
+        if num_ff > 1 and (num_ff % 1000) == 0:
+            pd.DataFrame(ff_list).to_csv('get_functional_forms_week.csv',
+                                         header=None,
+                                         index=False)
+
+    pd.DataFrame(ff_list).to_csv('get_functional_forms_week.csv',
                                  header=None,
                                  index=False)
