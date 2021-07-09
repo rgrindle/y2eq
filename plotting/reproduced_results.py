@@ -29,7 +29,7 @@ if __name__ == '__main__':
     import numpy as np
 
     # y2eq-fixed-fixed-30
-    y2eq_data = pd.read_csv('../eval_y2eq-fixed-fixed/02_rmse_105.csv')
+    y2eq_data = pd.read_csv('../eval_y2eq-fixed-fixed/02_rmse_150.csv')
     rmse_y2eq_fixed_fixed_30_ = {'int': y2eq_data['rmse_int'].values,
                                  'ext': y2eq_data['rmse_ext'].values}
 
@@ -75,12 +75,12 @@ if __name__ == '__main__':
 
     for ax in axes:
         plt.sca(ax)
-        plot_cdf(rmse_y2eq_fixed_fixed_30['ext'], labels=False, color='#8B94FC', linewidth=1, label='y2eq-fixed-fixed-30')
+        plot_cdf(rmse_y2eq_fixed_fixed_30['ext'], labels=False, color='#8B94FC', linewidth=1, label='y2eq')
         plot_cdf(rmse_numeric_regression_nn['ext'], labels=False, color='#CF6875', label='Numeric NN')
         plot_cdf(rmse_gp['ext'], labels=False, color='C8', label='Genetic programming')
 
     plt.sca(axes[1])
-    plt.xlabel('RMSE on extrapolation region ($x = \\left[3.1, 3.2, \\cdots, 6.0\\right]$)')
+    plt.xlabel('RMSE on extrapolation region ($x = \\left\\{3.1, 3.2, \\cdots, 6.0\\right\\}$)')
     # plt.ylabel('Cumulative counts')
     plt.legend(loc='lower right')
     plt.xscale('log')
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     plt.sca(axes[0])
     plt.legend(loc='lower right')
-    plt.xlabel('RMSE on extrapolation region ($x = \\left[3.1, 3.2, \\cdots, 6.0\\right]$)')
+    plt.xlabel('RMSE on extrapolation region ($x = \\left\\{3.1, 3.2, \\cdots, 6.0\\right\\}$)')
     plt.ylabel('Cumulative counts')
     plt.xscale('linear')
     plt.xlim([0, 3])
