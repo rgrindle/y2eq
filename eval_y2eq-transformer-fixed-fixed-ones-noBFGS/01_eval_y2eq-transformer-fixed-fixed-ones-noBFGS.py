@@ -17,4 +17,4 @@ with open('00_y_int_normalized_list.json', 'r') as json_file:
     y_int_list = json.load(json_file)
 
 eval_y2eq_transformer(input_list=y_int_list,
-                      model_filename='BEST_y2eq_transformer.pt')
+                      model_filename='BEST_y2eq_transformer_1400.pt')
