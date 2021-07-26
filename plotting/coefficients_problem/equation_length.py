@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jun 14, 2021
+LAST MODIFIED: Jul 13, 2021
 
 PURPOSE: Are equation output by y2eq longer than expected?
 
@@ -39,9 +39,11 @@ print(true_tok_len_list)
 
 print(len(true_tok_ff_list), len(pred_tok_ff_list))
 
-plt.boxplot([pred_tok_len_list, true_tok_len_list], labels=['pred', 'true'])
-plt.ylabel('Number of tokens in functional form')
-plt.savefig('equation_length.pdf')
+plt.boxplot([pred_tok_len_list, true_tok_len_list],
+            labels=['predicted\nfunctional forms',
+                    'target\n functional forms'])
+plt.ylabel('Length of functional forms')
+plt.savefig('equation_length_pres.pdf')
 
 results = mannwhitneyu(pred_tok_len_list, true_tok_len_list, alternative='greater')
 print(results)

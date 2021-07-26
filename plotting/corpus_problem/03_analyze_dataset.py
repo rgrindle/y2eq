@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: June 17, 2021
+LAST MODIFIED: Jul 13, 2021
 
 PURPOSE: Can I find examples of equations that already
          exist in my current dataset that are similar?
@@ -80,6 +80,13 @@ for count, (ind, error) in enumerate(zip(ind_list, min_list)):
     Yj = Y[j]
     assert RMSE(Yi, Yj) - error <= 10**(-20)
 
+    print(count)
+    print(ff_list[index_i])
+    print(ff_list[j])
+    print(sympy.sympify(ff_instance_list[index_i]))
+    print(sympy. sympify(ff_instance_list[j]))
+    print()
+
     if ff_list[index_i] != ff_list[j]:
         rmse_list.append(error)
 
@@ -123,8 +130,8 @@ for count, (ind, error) in enumerate(zip(ind_list, min_list)):
         shared_rmse_list.extend([rmse_i, rmse_j])
 
 print(len(rmse_list), len(shared_rmse_list))
-plt.boxplot([rmse_list, shared_rmse_list],
-            labels=['Full ff instances', 'Shared terms of ff instances'])
+plt.boxplot([rmse_list],    # shared_rmse_list],
+            labels=['75 comparisons between numerically similar\nfunctional form instances'])    # , 'Shared terms of ff instances'])
 plt.yscale('log')
-plt.ylabel('RMSE')
-plt.savefig('shared_term_rmse.pdf')
+plt.ylabel('Numeric cost')
+plt.savefig('shared_term_rmse_pres.pdf')
