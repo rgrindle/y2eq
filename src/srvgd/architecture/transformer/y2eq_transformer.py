@@ -58,7 +58,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 y2eq_trans_model = y2eqTransformer().to(device)
 
 if __name__ == '__main__':
-    checkpoint_filename = 'BEST_y2eq_transformer.pt'
+    # checkpoint_filename = 'BEST_y2eq_transformer.pt'
+    checkpoint_filename = None
 
     # Get number of trainable parameters
     num_params = sum(p.numel() for p in y2eq_trans_model.parameters() if p.requires_grad)
@@ -76,7 +77,7 @@ if __name__ == '__main__':
                                 map_location=device)
         y2eq_trans_model.load_state_dict(checkpoint['state_dict'])
 
-        model_name = 'y2eq_transformer_1400.pt'
+        model_name = 'y2eq_transformer_500.pt'
         kwargs = {'train_losses': checkpoint['train_loss'],
                   'valid_losses': checkpoint['val_loss'],
                   'optimizer_state_dict': checkpoint['optimizer']}
@@ -86,5 +87,5 @@ if __name__ == '__main__':
                       model=y2eq_trans_model,
                       device=device,
                       model_name=model_name,
-                      num_epochs=100,
+                      num_epochs=500,
                       **kwargs)
