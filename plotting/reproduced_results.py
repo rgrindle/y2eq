@@ -80,7 +80,7 @@ if __name__ == '__main__':
         plot_cdf(rmse_gp['ext'], labels=False, color='C8', label='Genetic programming')
 
     plt.sca(axes[1])
-    plt.xlabel('RMSE on extrapolation region ($x = \\left\\{3.1, 3.2, \\cdots, 6.0\\right\\}$)')
+    plt.xlabel('Numeric cost on extrapolation region ($x = \\left\\{3.1, 3.2, \\cdots, 6.0\\right\\}$)')
     # plt.ylabel('Cumulative counts')
     plt.legend(loc='lower right')
     plt.xscale('log')
@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     plt.sca(axes[0])
     plt.legend(loc='lower right')
-    plt.xlabel('RMSE on extrapolation region ($x = \\left\\{3.1, 3.2, \\cdots, 6.0\\right\\}$)')
+    plt.xlabel('Numeric cost on extrapolation region ($x = \\left\\{3.1, 3.2, \\cdots, 6.0\\right\\}$)')
     plt.ylabel('Cumulative counts')
     plt.xscale('linear')
     plt.xlim([0, 3])
