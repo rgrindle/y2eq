@@ -44,6 +44,8 @@ python y2eq_transformer.py
 ```
 The model will be saved as SRvGD/models/y2eq_transformer.pt (model on final epoch) and SRvGD/models/BEST_y2eq_transformer.pt (best model according to validation loss). There are several variations of y2eq-transformer that can be trained just like this one. These variations can be found in SRvGD/src/srvgd/architecture/transformer/.
 
+In all these transform models, checkpointing can be used by changing `checkpoint_filename` and `model_name`.
+
 ### Example 2b: Train the neural network (convolutional seq2seq)
 To train the y2eq-transformer model on the dataset created by Example 1, 
 ```
