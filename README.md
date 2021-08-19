@@ -2,7 +2,7 @@
 
 The ever-growing accumulation of data makes automated distillation of understandable models from that data ever-more desirable. Deriving equations directly from data using symbolic regression, as performed by genetic programming, continues its appeal due to its algorithmic simplicity and lack of assumptions about equation form. However, few models besides a sequence-to-sequence approach to symbolic regression, introduced in 2020 [1] that we call y2eq, have been shown capable of transfer learning: the ability to rapidly distill equations successfully on new data from a previously unseen domain, due to experience performing this distillation on other domains. In order to improve this model, it is necessary to understand the key challenges associated with it. We have identified three important challenges: corpus, coefficient, and cost. The challenge of devising a training corpus stems from the hierarchical nature of the data since the corpus should not be considered as a collection of equations but rather as a collection of functional forms and instances of those functional forms. The challenge of choosing appropriate coefficients for functional forms compounds the corpus challenge and presents further challenges during evaluation of trained models due to the potential for similarity between instances of different functional forms. The challenge with cost functions (used to train the model) is mainly the choice between numeric cost (compares y-values) and symbolic cost (compares written functional forms). This code repository re-implements the neural network from [1]. The repository can be used to provide evidence for the existence of the corpus, coefficient, and cost challenges. We hope that this repository can be used to initiate improvements to this already promising symbolic regression model.
 
-With this code, all expimental results from here (TODO: like to thesis) can be recreated.
+With this code, all expimental results from here (TODO: link to thesis) can be recreated.
 
 
 [1] Biggio, Luca, Tommaso Bendinelli, Aurelien Lucchi, and Giambattista Parascandolo. "A seq2seq approach to symbolic regression." In Learning Meets Combinatorial Algorithms at NeurIPS2020. 2020.
@@ -66,7 +66,7 @@ do
 done
 python 03_eval_y2eq-transformer-fixed-fixed_vacc.py
 ```
-First, 00 creates data to evaluate y2eq-transformer, then 01 records the output functional forms, then 02 computes root mean squared errors (RMSE) of these functional forms, and finally 03 groups all RMSEs into one file: 02_rmse_150.csv.
+First, 00 creates data to evaluate y2eq-transformer, then 01 records the output functional forms, then 02 computes root mean squared errors (RMSE) of these functional forms, and finally 03 groups all RMSEs into one file: 02_rmse_150.csv. Note that when there is not 02_..._vacc.py script then the 02_... file that does not end in _vacc should be used without looping. In such cases, BFGS (or L-BFGS-B) is probably not being used and so the output file is 02_rmse.csv. 
 
 There are many eval_y2eq... folders and scripts. Each script has a PURPOSE and NOTE that will help explain what they are used for. The follow is an explanation of the naming convention.
 
