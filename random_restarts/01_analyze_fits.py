@@ -51,21 +51,21 @@ for index in range(1000):
     rmse_list = np.minimum.accumulate(rmse_list)
     rmse_list_list.append(rmse_list)
     within_percent_index = get_within_percent_final(rmse_list, frac=.9)
-    # print(within_percent_index)
-    # plt.plot(rmse_list)
-    # plt.vlines(within_percent_index, *plt.ylim())
-    # hl = [(1-f)*(np.max(rmse_list)-np.min(rmse_list))+np.min(rmse_list) for f in np.arange(0, 1, 0.01)]
-    # print(hl)
-    # plt.hlines(hl, *plt.xlim())
-    # plt.yscale('log')
-    # plt.show()
+#     # print(within_percent_index)
+#     # plt.plot(rmse_list)
+#     # plt.vlines(within_percent_index, *plt.ylim())
+#     # hl = [(1-f)*(np.max(rmse_list)-np.min(rmse_list))+np.min(rmse_list) for f in np.arange(0, 1, 0.01)]
+#     # print(hl)
+#     # plt.hlines(hl, *plt.xlim())
+#     # plt.yscale('log')
+#     # plt.show()
     within_percent_indices.append(within_percent_index)
 
-plt.figure()
-plot_cdf(within_percent_indices, ymax=1., color='k')
-plt.xlabel('Num of random restarts')
-plt.ylabel('Fraction ff that have RMSE within final')
-plt.show()
+# plt.figure()
+# plot_cdf(within_percent_indices, ymax=1., color='k')
+# plt.xlabel('Num of random restarts')
+# plt.ylabel('Fraction ff that have RMSE within final')
+# plt.show()
 
 # for within_percent_index in within_percent_indices:
     # plt.plot([within_percent_index]*2, plt.ylim(), 'k', alpha=0.1)
@@ -78,24 +78,24 @@ plt.show()
 # plt.xlabel('Number of random restarts')
 # plt.show()
 
-# rmse_arr = np.array(rmse_list_list)
-# print(rmse_arr.shape)
+rmse_arr = np.array(rmse_list_list)
+print(rmse_arr.shape)
 
-# rr = [0, 9, 49, 99, 199, 299, 399, 499, 599, 699, 799, 899, 999]
+rr = [0, 9, 49, 99, 199, 299, 399, 499, 599, 699, 799, 899, 999]
 
 # import scipy.stats
 
-# at = [rmse_arr[:, r] for r in rr]
+at = [rmse_arr[:, r] for r in rr]
 
 # for i, a in enumerate(at[:-1]):
 
 #     result = scipy.stats.mannwhitneyu(a, at[-1], alternative='greater')
 #     print(rr[i]+1, '>', 1000, result)
 
-# labels = [str(r+1) for r in rr]
-# plt.boxplot(at, labels=labels)
-# # plt.yscale('log')
+labels = [str(r+1) for r in rr]
+plt.boxplot(at, labels=labels)
+plt.yscale('log')
 # plt.ylim([0, 1])
-# plt.xlabel('Num random restarts')
-# plt.ylabel('min RMSE')
-# plt.show()
+plt.xlabel('Number of random restarts')
+plt.ylabel('Minimum numeric cost')
+plt.savefig('plot_random_restarts.pdf')
