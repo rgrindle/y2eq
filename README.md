@@ -21,6 +21,7 @@ mkdir SRvGD
 cd SRvGD
 clone https://github.com/rgrindle/y2eq.git
 mv y2eq/* y2eq/.git .
+rm -r y2eq
 pip install .
 ```
 
