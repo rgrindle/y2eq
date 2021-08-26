@@ -20,6 +20,7 @@ The [EQLearner respository](https://github.com/SymposiumOrganization/EQLearner) 
 mkdir SRvGD
 cd SRvGD
 clone https://github.com/rgrindle/y2eq.git
+mv y2eq/* y2eq/.git .
 pip install .
 ```
 
