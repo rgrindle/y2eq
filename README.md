@@ -18,8 +18,8 @@ The [EQLearner respository](https://github.com/SymposiumOrganization/EQLearner) 
 ### Install
 ```
 mkdir SRvGD
-clone https://github.com/rgrindle/y2eq.git
 cd SRvGD
+clone https://github.com/rgrindle/y2eq.git
 pip install .
 ```
 
