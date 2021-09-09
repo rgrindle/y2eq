@@ -1,7 +1,7 @@
 """
 AUTHOR: Ryan Grindle
 
-LAST MODIFIED: Jan 24, 2021
+LAST MODIFIED: Sept 9, 2021
 
 PURPOSE: Take a list of functional forms and generate
          a dataset of a given size from them. Inputs will
@@ -16,7 +16,6 @@ NOTES: Should the number of instances of each functional form
 
 TODO:
 """
-from generate_dataset import pad
 from srvgd.updated_eqlearner.tokenization_rg import tokenize_eq
 from srvgd.utils.normalize import normalize
 
@@ -181,6 +180,13 @@ def save(dataset_inputs, dataset_outputs, eq_with_coeff_list, save_name):
     torch.save(dataset, os.path.join(save_loc, 'dataset'+save_name+'.pt'))
 
 
+def pad(to_pad_list):
+    max_len = max([len(x) for x in to_pad_list])
+    for i, x in enumerate(to_pad_list):
+        to_pad_list[i] = x.tolist()+[0]*(max_len-len(x))
+    return torch.Tensor(to_pad_list)
+
+
 if __name__ == '__main__':
     np.random.seed(0)
 
@@ -190,7 +196,7 @@ if __name__ == '__main__':
     support = np.arange(0.1, 3.1, 0.1)
 
     dataset_parts = (None,)
-    dataset_size = {'train': 100000, 'test': 1000}
+    dataset_size = {'train': 50000, 'test': 1000}
     for dataset_type in ['train', 'test']:
         dataset_parts = get_dataset(ff_list=ff_list,
                                     support=support,
@@ -198,4 +204,4 @@ if __name__ == '__main__':
                                     dataset_size=dataset_size[dataset_type],
                                     other_dataset_inputs=dataset_parts[0])
 
-        save(*dataset_parts, save_name='_'+dataset_type+'_ff1000_100000')
+        save(*dataset_parts, save_name='_'+dataset_type+'_ff1000')
