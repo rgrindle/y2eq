@@ -11,7 +11,7 @@ TODO:
 """
 from gp.GeneticProgramming import GeneticProgramming
 from gp.RegressionDataset import RegressionDataset
-from srvgd.utils.eval import get_f
+from equation.EquationInfix import EquationInfix
 from srvgd.utils.normalize import normalize, get_normalization_params
 
 import numpy as np
@@ -28,13 +28,13 @@ args = parser.parse_args()
 np.random.seed(0)
 
 # read in remaining datasets
-eqs = pd.read_csv(os.path.join('..', '..', 'datasets', 'equations_with_coeff_test_ff1000.csv'), header=None).iloc[:, 0].values
-print('shape of equation list', eqs.shape)
+eq_strs = pd.read_csv(os.path.join('..', '..', 'datasets', 'equations_with_coeff_test_ff1000.csv'), header=None).iloc[:, 0].values
+print('shape of equation list', eq_strs.shape)
 
-eq = eqs[args.dataset_index].replace('x', 'x[0]')
-eq = eq.replace('ex[0]p', 'exp')  # fix messed up exp
-print('target eq', eq)
-f = get_f(eq)
+eq_str = eq_strs[args.dataset_index].replace('x', 'x[0]')
+eq_str = eq_str.replace('ex[0]p', 'exp')  # fix messed up exp
+eq = EquationInfix(eq_str, apply_coeffs=False)
+print('target eq', eq.eq_str)
 
 x_int = RegressionDataset.linspace(0.1, 3.0, 30)
 x_ext = RegressionDataset.linspace(3.1, 6.0, 30)
@@ -46,9 +46,9 @@ x_train = [x for i, x in enumerate(x_int) if i in i_train]
 x_val = [x for i, x in enumerate(x_int) if i in i_val]
 
 # Make the datasets
-train_dataset = RegressionDataset(x=x_train, f=f)
-val_dataset = RegressionDataset(x=x_val, f=f)
-test_dataset = RegressionDataset(x=x_ext, f=f)
+train_dataset = RegressionDataset(x=x_train, f=eq.f)
+val_dataset = RegressionDataset(x=x_val, f=eq.f)
+test_dataset = RegressionDataset(x=x_ext, f=eq.f)
 
 # import matplotlib.pyplot as plt
 # train_dataset.plot()
@@ -76,7 +76,7 @@ print(gp.best_individual.coeffs)
 train_rmse = gp.best_individual.fitness
 test_rmse = gp.best_individual.testing_fitness
 
-min_, scale_ = get_normalization_params(RegressionDataset.get_y(f=f, x=x_int).flatten())
+min_, scale_ = get_normalization_params(RegressionDataset.get_y(f=eq.f, x=x_int).flatten())
 train_normalized_rmse = normalize(train_rmse, min_=min_, scale_=scale_)
 test_normalized_rmse = normalize(test_rmse, min_=min_, scale_=scale_)
 

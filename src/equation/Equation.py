@@ -43,6 +43,10 @@ class Equation:
             for p in ['sin', 'exp', 'log']:
                 self.eq_str = self.eq_str.replace(p, 'np.'+p)
 
+            # in case using protected_sin (or similar),
+            # remove unintended protected_np.sin
+            self.eq_str = self.eq_str.replace('_np.', '_')
+
         if 'c[' in self.eq_str:
             lambda_str_beg = 'lambda c, x: '
         else:
